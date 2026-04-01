@@ -131,7 +131,7 @@ class GCS_Calendar_Shortcode {
             </div>
             
             <script>
-                document.addEventListener("DOMContentLoaded", function() {
+                (function() {
                     var wrapper = document.getElementById('gcs-calendar-ajax-wrapper');
                     if (!wrapper) return;
                     
@@ -143,24 +143,34 @@ class GCS_Calendar_Shortcode {
                             var inner = document.getElementById('gcs-calendar-inner');
                             inner.style.opacity = '0.4';
                             
-                            var formData = new FormData();
-                            formData.append('action', 'gcs_load_calendar');
-                            formData.append('month', m);
-                            formData.append('year', y);
+                            var params = new URLSearchParams();
+                            params.append('action', 'gcs_load_calendar');
+                            params.append('month', m);
+                            params.append('year', y);
                             
                             fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
                                 method: 'POST',
-                                body: formData
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded'
+                                },
+                                body: params
                             })
-                            .then(response => response.text())
+                            .then(response => {
+                                if (!response.ok) throw new Error('Network fault');
+                                return response.text();
+                            })
                             .then(data => {
+                                if (data == '0') throw new Error('WP Ajax rejected action');
                                 inner.innerHTML = data;
                                 inner.style.opacity = '1';
-                                gcsCleanUpThemeStripesAjax();
+                                if (typeof window.gcsCleanUpThemeStripesAjax === 'function') {
+                                    window.gcsCleanUpThemeStripesAjax();
+                                }
                             })
                             .catch(error => {
-                                console.error('Errore:', error);
+                                console.error('Errore Calendario:', error);
                                 inner.style.opacity = '1';
+                                alert('Errore di connessione. Ricarica la pagina.');
                             });
                         }
                     });
@@ -184,8 +194,8 @@ class GCS_Calendar_Shortcode {
                             });
                         });
                     }
-                    gcsCleanUpThemeStripesAjax();
-                });
+                    window.gcsCleanUpThemeStripesAjax();
+                })();
             </script>
         </div>
         <?php
