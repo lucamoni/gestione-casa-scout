@@ -39,13 +39,41 @@ class GCS_Form_Shortcode {
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Martel:wght@400;700&display=swap');
             
+            /* --- RESET AGGRESSIVO ANTI-TEMA E ANTI-WPBAKERY --- */
+            .gcs-form-container, .gcs-booking-form, .gcs-form-row, .gcs-form-flex, .gcs-booking-form label {
+                background-image: none !important;
+                border-bottom: none !important;
+                border-top: none !important;
+                border-right: none !important;
+                border-left: none !important;
+                box-shadow: none !important;
+                outline: none !important;
+            }
+            .gcs-form-container::before, .gcs-form-container::after,
+            .gcs-form-row::before, .gcs-form-row::after,
+            .gcs-booking-form::before, .gcs-booking-form::after,
+            .gcs-form-flex::before, .gcs-form-flex::after {
+                display: none !important;
+                content: none !important;
+                background: transparent !important;
+                border: none !important;
+            }
+            .gcs-form-container p {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+            }
+            /* ------------------------------------------------ */
+
             .gcs-form-container {
                 width: 100%;
                 margin: 0;
-                background: transparent;
+                background: transparent !important;
                 padding: 0;
-                box-shadow: none;
-                border: none;
+                box-shadow: none !important;
+                border: none !important;
                 font-family: inherit;
             }
             .gcs-form-container h3 {
