@@ -106,18 +106,41 @@ class GCS_Calendar_Shortcode {
                 .gcs-pub-cal-event {
                     background: #a1d1d0;
                     color: #1a4581;
-                    padding: 5px;
+                    padding: 6px 10px;
                     font-size: 11px;
-                    border-radius: 3px;
-                    margin-bottom: 3px;
-                    line-height: 1.2;
-                    font-weight: 600;
+                    border-radius: 6px;
+                    margin: 4px 0;
+                    line-height: 1;
+                    font-weight: 700;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+                    white-space: nowrap;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+                    width: 100%;
+                    box-sizing: border-box;
+                    position: relative;
+                    z-index: 1;
+                    height: 24px;
+                }
+                .gcs-pub-cal-event.cont-prev {
+                    border-top-left-radius: 0;
+                    border-bottom-left-radius: 0;
+                    margin-left: -5px;
+                    width: calc(100% + 5px);
+                    padding-left: 0;
+                }
+                .gcs-pub-cal-event.cont-next {
+                    border-top-right-radius: 0;
+                    border-bottom-right-radius: 0;
+                    margin-right: -5px;
+                    width: calc(100% + 5px);
+                    padding-right: 0;
+                }
+                .gcs-pub-cal-event.cont-prev.cont-next {
+                    width: calc(100% + 10px);
+                }
+                .gcs-pub-cal-event.event-hidden-text {
+                    color: transparent;
                 }
                 #gcs-calendar-inner {
                     transition: opacity 0.3s ease;
@@ -275,7 +298,21 @@ class GCS_Calendar_Shortcode {
                             echo '<span class="gcs-pub-cal-day-num">' . $day . '</span>';
                             
                             foreach ($day_events as $de) {
-                                echo '<div class="gcs-pub-cal-event" title="Occupato">';
+                                $is_start = ($current_date == $de->start_date);
+                                $is_end = ($current_date == $de->end_date);
+                                $is_monday = ($cell_count % 7 == 0);
+                                
+                                $classes = array('gcs-pub-cal-event');
+                                if (!$is_start) $classes[] = 'cont-prev';
+                                if (!$is_end) $classes[] = 'cont-next';
+                                
+                                // Mostriamo il testo solo al primo giorno dell'impegno
+                                // OPPURE all'inizio di ogni settimana (Lunedì)
+                                // OPPURE al primo giorno del mese visibile
+                                $show_text = ($is_start || $is_monday || ($day == 1));
+                                if (!$show_text) $classes[] = 'event-hidden-text';
+
+                                echo '<div class="' . implode(' ', $classes) . '" title="Occupato dal ' . date('d/m', strtotime($de->start_date)) . ' al ' . date('d/m', strtotime($de->end_date)) . '">';
                                 echo esc_html($de->group_name);
                                 echo '</div>';
                             }
