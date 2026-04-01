@@ -69,12 +69,16 @@ class GCS_Form_Shortcode {
 
             .gcs-form-container {
                 width: 100%;
-                margin: 0;
-                background: transparent !important;
-                padding: 0;
-                box-shadow: none !important;
-                border: none !important;
+                max-width: 650px;
+                margin: 30px auto;
+                background: #ffffff !important;
+                padding: 30px !important;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.05) !important;
+                border: 1px solid #eaeaea !important;
+                border-radius: 16px !important;
                 font-family: inherit;
+                position: relative;
+                z-index: 10;
             }
             .gcs-form-container h3 {
                 margin-top: 0;
@@ -240,7 +244,14 @@ class GCS_Form_Shortcode {
             </form>
         </div>
         <?php
-        return ob_get_clean();
+        $form_html = ob_get_clean();
+        
+        // TRUCCO DEFINITIVO CONTRO WPAUTOP DI WPBAKERY
+        // WPBakery prende gli a-capo del nostro codice PHP e ci inietta <br> o <p>, causando spazi esagerati.
+        // Togliendo tutti gli a-capo (\n \r) dall'HTML renderizzato, scavalchiamo il problema per sempre.
+        $form_html = str_replace(array("\r", "\n", "\t"), '', $form_html);
+
+        return $form_html;
     }
 
     public static function handle_form_submission() {
