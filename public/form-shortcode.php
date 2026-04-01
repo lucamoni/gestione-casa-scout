@@ -243,6 +243,38 @@ class GCS_Form_Shortcode {
                 </div>
             </form>
         </div>
+
+        <!-- SCRIPT NUCLEARE: Disintegra righe, sfondi a tema e <br> spuri di WPBakery -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                var containers = document.querySelectorAll('.gcs-form-container');
+                containers.forEach(function(container) {
+                    // 1. Elimina i famigerati <br> del wpautop che sfalsavano le altezze
+                    var brs = container.querySelectorAll('br');
+                    brs.forEach(function(br) { br.remove(); });
+                    
+                    // 2. Rimuove o ripulisce i paragrafi vuoti usati come distanziatori 
+                    var ps = container.querySelectorAll('p');
+                    ps.forEach(function(p) {
+                        if(p.innerHTML.trim() === '' || p.innerHTML.trim() === '&nbsp;') {
+                            p.remove();
+                        } else {
+                            p.style.setProperty('margin', '0', 'important');
+                            p.style.setProperty('padding', '0', 'important');
+                            p.style.setProperty('background', 'transparent', 'important');
+                        }
+                    });
+
+                    // 3. Stronca le righe orizzontali alternate del tema resettando gli sfondi interni
+                    var internals = container.querySelectorAll('form, div, span, label');
+                    internals.forEach(function(el) {
+                        el.style.setProperty('background-image', 'none', 'important');
+                        el.style.setProperty('background-color', 'transparent', 'important');
+                    });
+                });
+            });
+        </script>
+
         <?php
         $form_html = ob_get_clean();
         
