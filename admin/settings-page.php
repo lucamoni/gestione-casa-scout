@@ -55,24 +55,11 @@ class GCS_Settings_Page {
                             <p class="description">Inserisci l'indirizzo a cui vuoi che arrivino le notifiche. Default: email amministratore del sito.</p>
                         </td>
                     </tr>
-                    <tr valign="top">
+                     <tr valign="top">
                         <th scope="row">URL Accesso Webmail</th>
                         <td>
                             <input type="url" name="gcs_webmail_url" value="<?php echo esc_attr( get_option('gcs_webmail_url', 'http://mail.assdonrenato.it') ); ?>" class="large-text" />
-                            <p class="description">Link alla pagina di login (es. http://mail.assdonrenato.it). Servirà al pulsante "Rispondi da Webmail".</p>
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">Utente Webmail</th>
-                        <td>
-                            <input type="text" name="gcs_webmail_user" value="<?php echo esc_attr( get_option('gcs_webmail_user', '') ); ?>" class="regular-text" />
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">Password Webmail</th>
-                        <td>
-                            <input type="password" name="gcs_webmail_pass" value="<?php echo esc_attr( get_option('gcs_webmail_pass', '') ); ?>" class="regular-text" />
-                            <p class="description">Sconsigliamo l'uso di password sensibili se il sito è condiviso con altri amministratori. I bottoni useranno questi dati per auto-compliare il login.</p>
+                            <p class="description">Link alla tua pagina Webmail (es. http://mail.assdonrenato.it). Il pulsante in Dashboard aprirà semplicemente il link in una nuova scheda.</p>
                         </td>
                     </tr>
                 </table>

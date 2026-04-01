@@ -110,18 +110,11 @@ class GCS_Admin_Page {
                                     
                                     <?php
                                     $webmail_url = get_option('gcs_webmail_url');
-                                    $webmail_user = get_option('gcs_webmail_user');
-                                    $webmail_pass = get_option('gcs_webmail_pass');
-                                    if ($webmail_url && $webmail_user && $webmail_pass) :
+                                    if ($webmail_url) :
                                     ?>
-                                    <form action="<?php echo esc_url($webmail_url); ?>" method="POST" target="_blank" style="margin-top:8px;">
-                                        <input type="hidden" name="_task" value="login">
-                                        <input type="hidden" name="_action" value="login">
-                                        <input type="hidden" name="_timezone" value="Europe/Rome">
-                                        <input type="hidden" name="_user" value="<?php echo esc_attr($webmail_user); ?>">
-                                        <input type="hidden" name="_pass" value="<?php echo esc_attr($webmail_pass); ?>">
-                                        <button type="submit" class="button button-small" style="font-size:11px; padding:0 8px; border-radius:3px;">Rispondi da Webmail 📧</button>
-                                    </form>
+                                    <div style="margin-top:8px;">
+                                        <a href="<?php echo esc_url($webmail_url); ?>" target="_blank" class="button button-small" style="font-size:11px; padding:0 8px; border-radius:3px; text-decoration:none;">Apri Webmail 🌐</a>
+                                    </div>
                                     <?php endif; ?>
                                     
                                     <button type="button" class="button button-link" style="font-size:11px; margin-top:5px; color:#1a4581;" onclick="navigator.clipboard.writeText('<?php echo esc_attr($req->contact_email); ?>'); alert('Email copiata negli appunti!');">Copia Email 📋</button>
