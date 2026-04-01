@@ -58,8 +58,8 @@ class GCS_Settings_Page {
                     <tr valign="top">
                         <th scope="row">URL Accesso Webmail</th>
                         <td>
-                            <input type="url" name="gcs_webmail_url" value="<?php echo esc_attr( get_option('gcs_webmail_url', 'http://mail.assdonrenato.it/postfixadmin/login.php') ); ?>" class="large-text" />
-                            <p class="description">Link alla pagina di login, servirà al pulsante "Rispondi per Mail" nel pannello prenotazioni.</p>
+                            <input type="url" name="gcs_webmail_url" value="<?php echo esc_attr( get_option('gcs_webmail_url', 'http://mail.assdonrenato.it') ); ?>" class="large-text" />
+                            <p class="description">Link alla pagina di login (es. http://mail.assdonrenato.it). Servirà al pulsante "Rispondi da Webmail".</p>
                         </td>
                     </tr>
                     <tr valign="top">
