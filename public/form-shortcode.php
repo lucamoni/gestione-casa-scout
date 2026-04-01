@@ -271,6 +271,18 @@ class GCS_Form_Shortcode {
                         el.style.setProperty('background-image', 'none', 'important');
                         el.style.setProperty('background-color', 'transparent', 'important');
                     });
+                    
+                    // 4. FIX ULTIMATE: Se l'utente ha incollato lo shortcode dalla chat, WP lo avvolge in un <pre> o <code> a righe!
+                    var parent = container.parentElement;
+                    while(parent && parent.tagName !== 'BODY') {
+                        if(parent.tagName === 'PRE' || parent.tagName === 'CODE' || parent.classList.contains('wpb_wrapper')) {
+                            parent.style.setProperty('background-image', 'none', 'important');
+                            parent.style.setProperty('background-color', 'transparent', 'important');
+                            parent.style.setProperty('border', 'none', 'important');
+                            parent.style.setProperty('box-shadow', 'none', 'important');
+                        }
+                        parent = parent.parentElement;
+                    }
                 });
             });
         </script>

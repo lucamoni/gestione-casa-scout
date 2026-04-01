@@ -67,8 +67,15 @@ class GCS_Calendar_Shortcode {
             .gcs-pub-cal-table {
                 width: 100%;
                 border-collapse: collapse;
-                background: #ffffff;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                background: transparent !important;
+            }
+            .gcs-pub-cal-table th, .gcs-pub-cal-table td {
+                border: 1px solid #f0f0f0;
+                text-align: center;
+                vertical-align: top;
+                padding: 8px;
+                background-color: transparent !important;
+                background-image: none !important;
             }
             .gcs-pub-cal-table th {
                 padding: 10px;
@@ -190,7 +197,34 @@ class GCS_Calendar_Shortcode {
                 </tbody>
             </table>
         </div>
+        
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                var cals = document.querySelectorAll('.gcs-calendar-container');
+                cals.forEach(function(container) {
+                    var parent = container.parentElement;
+                    while(parent && parent.tagName !== 'BODY') {
+                        if(parent.tagName === 'PRE' || parent.tagName === 'CODE' || parent.classList.contains('wpb_wrapper')) {
+                            parent.style.setProperty('background-image', 'none', 'important');
+                            parent.style.setProperty('background-color', 'transparent', 'important');
+                            parent.style.setProperty('border', 'none', 'important');
+                        }
+                        parent = parent.parentElement;
+                    }
+                    
+                    // Rimuove gli a-capo fantasma dal calendario e le righe delle tabelle tema jupiter
+                    var trs = container.querySelectorAll('tr, th, td, table, tbody, thead');
+                    trs.forEach(function(el) {
+                        el.style.setProperty('background-image', 'none', 'important');
+                        el.style.setProperty('background-color', 'transparent', 'important');
+                    });
+                });
+            });
+        </script>
+        
         <?php
-        return ob_get_clean();
+        $cal_html = ob_get_clean();
+        $cal_html = str_replace(array("\r", "\n", "\t"), '', $cal_html);
+        return $cal_html;
     }
 }
