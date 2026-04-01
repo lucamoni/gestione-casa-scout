@@ -17,6 +17,18 @@ class GCS_Form_Shortcode {
             $title = get_option('gcs_form_title', 'Invia una Richiesta di Prenotazione'); 
             $show_guests = get_option('gcs_show_guests_field', 1);
             $show_message = get_option('gcs_show_message_field', 1);
+            
+            // Variabili di Stile
+            $t_color = esc_attr(get_option('gcs_style_title_color', '#1a4581'));
+            $t_size = esc_attr(get_option('gcs_style_title_size', '24px'));
+            $l_color = esc_attr(get_option('gcs_style_label_color', '#444444'));
+            $i_bg = esc_attr(get_option('gcs_style_input_bg', '#ffffff'));
+            $i_border = esc_attr(get_option('gcs_style_input_border', '#cccccc'));
+            $i_radius = esc_attr(get_option('gcs_style_input_radius', '6px'));
+            $b_bg = esc_attr(get_option('gcs_style_btn_bg', '#1a4581'));
+            $b_hover = esc_attr(get_option('gcs_style_btn_bg_hover', '#a1d1d0'));
+            $b_color = esc_attr(get_option('gcs_style_btn_color', '#ffffff'));
+            $b_radius = esc_attr(get_option('gcs_style_btn_radius', '20px'));
         ?>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Martel:wght@400;700&display=swap');
@@ -33,17 +45,17 @@ class GCS_Form_Shortcode {
             .gcs-form-container h3 {
                 margin-top: 0;
                 margin-bottom: 8px;
-                color: #1a4581;
+                color: <?php echo $t_color; ?>;
                 font-family: 'Martel', serif;
                 font-weight: 700;
-                font-size: 24px;
+                font-size: <?php echo $t_size; ?>;
                 text-align: left;
             }
             .gcs-booking-form label {
                 display: block;
                 margin-bottom: 2px;
                 font-weight: 600;
-                color: #444444;
+                color: <?php echo $l_color; ?>;
                 font-size: 13px;
                 padding-left: 2px;
             }
@@ -54,26 +66,26 @@ class GCS_Form_Shortcode {
             .gcs-booking-form textarea {
                 width: 100%;
                 padding: 8px 12px;
-                border: 1px solid #ccc;
-                background-color: #ffffff !important;
+                border: 1px solid <?php echo $i_border; ?>;
+                background-color: <?php echo $i_bg; ?> !important;
                 background-image: none !important;
                 font-size: 14px;
                 color: #333333;
-                border-radius: 6px;
+                border-radius: <?php echo $i_radius; ?>;
                 transition: all 0.3s ease;
                 box-sizing: border-box;
                 box-shadow: none !important;
             }
             .gcs-booking-form textarea {
-                border-radius: 6px;
+                border-radius: <?php echo $i_radius; ?>;
                 resize: vertical;
             }
             .gcs-booking-form input:focus,
             .gcs-booking-form textarea:focus {
-                border-color: #a1d1d0;
-                background-color: #ffffff;
+                border-color: <?php echo $b_bg; ?>;
+                background-color: <?php echo $i_bg; ?>;
                 outline: none;
-                box-shadow: 0 0 0 4px rgba(161, 209, 208, 0.2);
+                box-shadow: 0 0 0 3px <?php echo $b_hover; ?>;
             }
             .gcs-form-row {
                 margin-bottom: 8px;
@@ -97,23 +109,22 @@ class GCS_Form_Shortcode {
                 min-width: 150px !important;
                 margin: 10px 0 0 0 !important;
                 padding: 10px 20px !important;
-                background: #1a4581 !important;
-                color: #ffffff !important;
+                background: <?php echo $b_bg; ?> !important;
+                color: <?php echo $b_color; ?> !important;
                 font-size: 14px !important;
                 font-weight: 700 !important;
                 text-transform: uppercase !important;
                 letter-spacing: 0.5px !important;
                 border: none !important;
-                border-radius: 20px !important;
+                border-radius: <?php echo $b_radius; ?> !important;
                 cursor: pointer;
                 transition: transform 0.2s ease, background 0.3s ease !important;
                 box-shadow: none !important;
             }
             .gcs-btn-submit:hover {
-                background: #a1d1d0;
-                color: #1a4581;
+                background: <?php echo $b_hover; ?> !important;
+                color: <?php echo $b_color; ?> !important;
                 transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(161, 209, 208, 0.4);
             }
             .gcs-success-message {
                 background: rgba(161, 209, 208, 0.2);

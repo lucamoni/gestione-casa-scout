@@ -11,6 +11,18 @@ class GCS_Settings_Page {
         register_setting( 'gcs_settings_group', 'gcs_form_title' );
         register_setting( 'gcs_settings_group', 'gcs_show_guests_field' );
         register_setting( 'gcs_settings_group', 'gcs_show_message_field' );
+        
+        // Stili Dinamici Form
+        register_setting( 'gcs_settings_group', 'gcs_style_title_color' );
+        register_setting( 'gcs_settings_group', 'gcs_style_title_size' );
+        register_setting( 'gcs_settings_group', 'gcs_style_label_color' );
+        register_setting( 'gcs_settings_group', 'gcs_style_input_bg' );
+        register_setting( 'gcs_settings_group', 'gcs_style_input_border' );
+        register_setting( 'gcs_settings_group', 'gcs_style_input_radius' );
+        register_setting( 'gcs_settings_group', 'gcs_style_btn_bg' );
+        register_setting( 'gcs_settings_group', 'gcs_style_btn_color' );
+        register_setting( 'gcs_settings_group', 'gcs_style_btn_radius' );
+        register_setting( 'gcs_settings_group', 'gcs_style_btn_bg_hover' );
     }
 
     public static function render_settings_page() {
@@ -61,6 +73,52 @@ class GCS_Settings_Page {
                                 Mostra questo campo nel form
                             </label>
                         </td>
+                    </tr>
+                </table>
+
+                <hr>
+                <h3>Stile Visivo del Modulo (Colori e Forme)</h3>
+                <p class="description">Non ti piace lo stile di default? Personalizza liberamente i colori, la morbidezza degli angoli e le dimensioni dei testi.</p>
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row">Colore Titolo Principale</th>
+                        <td><input type="color" name="gcs_style_title_color" value="<?php echo esc_attr( get_option('gcs_style_title_color', '#1a4581') ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Grandezza Titolo (es. 24px)</th>
+                        <td><input type="text" name="gcs_style_title_size" value="<?php echo esc_attr( get_option('gcs_style_title_size', '24px') ); ?>" class="regular-text" style="width:100px;"/></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Colore Etichette/Sottotitoli</th>
+                        <td><input type="color" name="gcs_style_label_color" value="<?php echo esc_attr( get_option('gcs_style_label_color', '#444444') ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Sfondo Campi di testo</th>
+                        <td><input type="color" name="gcs_style_input_bg" value="<?php echo esc_attr( get_option('gcs_style_input_bg', '#ffffff') ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Colore Bordo Campi</th>
+                        <td><input type="color" name="gcs_style_input_border" value="<?php echo esc_attr( get_option('gcs_style_input_border', '#cccccc') ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Rotondità Campi (es. 6px, 20px)</th>
+                        <td><input type="text" name="gcs_style_input_radius" value="<?php echo esc_attr( get_option('gcs_style_input_radius', '6px') ); ?>" class="regular-text" style="width:100px;"/></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Sfondo Pulsante Invia</th>
+                        <td><input type="color" name="gcs_style_btn_bg" value="<?php echo esc_attr( get_option('gcs_style_btn_bg', '#1a4581') ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Sfondo Pulsante al Passaggio Mouse (Hover)</th>
+                        <td><input type="color" name="gcs_style_btn_bg_hover" value="<?php echo esc_attr( get_option('gcs_style_btn_bg_hover', '#a1d1d0') ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Testo Pulsante Invia</th>
+                        <td><input type="color" name="gcs_style_btn_color" value="<?php echo esc_attr( get_option('gcs_style_btn_color', '#ffffff') ); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Rotondità Pulsante (es. 20px)</th>
+                        <td><input type="text" name="gcs_style_btn_radius" value="<?php echo esc_attr( get_option('gcs_style_btn_radius', '20px') ); ?>" class="regular-text" style="width:100px;"/></td>
                     </tr>
                 </table>
                 
