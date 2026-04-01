@@ -22,21 +22,21 @@ class GCS_Form_Shortcode {
             @import url('https://fonts.googleapis.com/css2?family=Martel:wght@400;700&display=swap');
             
             .gcs-form-container {
-                max-width: 650px;
+                max-width: 600px;
                 margin: 20px auto;
                 background: #ffffff;
-                padding: 30px;
-                border-radius: 20px;
-                box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+                padding: 25px;
+                border-radius: 16px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.06);
                 font-family: inherit;
             }
             .gcs-form-container h3 {
                 margin-top: 0;
-                margin-bottom: 20px;
+                margin-bottom: 12px;
                 color: #1a4581;
                 font-family: 'Martel', serif;
                 font-weight: 700;
-                font-size: 26px;
+                font-size: 24px;
                 text-align: center;
             }
             .gcs-booking-form label {
@@ -53,17 +53,17 @@ class GCS_Form_Shortcode {
             .gcs-booking-form input[type="number"],
             .gcs-booking-form textarea {
                 width: 100%;
-                padding: 12px 18px;
+                padding: 10px 14px;
                 border: 1px solid #e0e0e0;
                 background-color: #fafafa;
                 font-size: 14px;
                 color: #333333;
-                border-radius: 12px;
+                border-radius: 10px;
                 transition: all 0.3s ease;
                 box-sizing: border-box;
             }
             .gcs-booking-form textarea {
-                border-radius: 16px;
+                border-radius: 12px;
                 resize: vertical;
             }
             .gcs-booking-form input:focus,
@@ -74,23 +74,26 @@ class GCS_Form_Shortcode {
                 box-shadow: 0 0 0 4px rgba(161, 209, 208, 0.2);
             }
             .gcs-form-row {
-                margin-bottom: 15px;
+                margin-bottom: 12px;
             }
             .gcs-form-flex {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 15px;
-                margin-bottom: 15px;
+                gap: 12px;
+                margin-bottom: 12px;
             }
             .gcs-form-flex > div {
-                flex: 1 1 calc(50% - 15px);
+                flex: 1 1 calc(50% - 12px);
             }
             .gcs-btn-submit {
-                width: 100%;
-                padding: 14px 20px;
+                display: block;
+                width: auto;
+                min-width: 220px;
+                margin: 0 auto;
+                padding: 12px 24px;
                 background: #1a4581;
                 color: #ffffff;
-                font-size: 15px;
+                font-size: 14px;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 1px;
@@ -98,7 +101,7 @@ class GCS_Form_Shortcode {
                 border-radius: 30px;
                 cursor: pointer;
                 transition: transform 0.2s ease, background 0.3s ease, box-shadow 0.3s ease;
-                box-shadow: 0 4px 15px rgba(26, 69, 129, 0.3);
+                box-shadow: 0 4px 15px rgba(26, 69, 129, 0.2);
             }
             .gcs-btn-submit:hover {
                 background: #a1d1d0;
@@ -168,7 +171,7 @@ class GCS_Form_Shortcode {
                 </div>
                 <?php endif; ?>
 
-                <div style="margin-top: 30px;">
+                <div style="margin-top: 20px; text-align: center;">
                     <button type="submit" class="gcs-btn-submit">
                         Invia la Richiesta
                     </button>
