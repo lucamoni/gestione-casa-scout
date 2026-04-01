@@ -117,7 +117,6 @@ class GCS_Admin_Page {
                                     </div>
                                     <?php endif; ?>
                                     
-                                    <button type="button" class="button button-link" style="font-size:11px; margin-top:5px; color:#1a4581;" onclick="navigator.clipboard.writeText('<?php echo esc_attr($req->contact_email); ?>'); alert('Email copiata negli appunti!');">Copia Email 📋</button>
                                 </td>
                                 
                                 <td class="column-date" data-colname="Periodo">
