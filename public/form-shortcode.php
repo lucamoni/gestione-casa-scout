@@ -29,6 +29,12 @@ class GCS_Form_Shortcode {
             $b_hover = esc_attr(get_option('gcs_style_btn_bg_hover', '#a1d1d0'));
             $b_color = esc_attr(get_option('gcs_style_btn_color', '#ffffff'));
             $b_radius = esc_attr(get_option('gcs_style_btn_radius', '20px'));
+            
+            // Variabili di Impaginazione
+            $l_align = esc_attr(get_option('gcs_layout_title_align', 'left'));
+            $l_gap = esc_attr(get_option('gcs_layout_row_gap', '8px'));
+            $l_btn_align = esc_attr(get_option('gcs_layout_btn_align', 'left'));
+            $custom_css = get_option('gcs_custom_css', '');
         ?>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Martel:wght@400;700&display=swap');
@@ -44,12 +50,12 @@ class GCS_Form_Shortcode {
             }
             .gcs-form-container h3 {
                 margin-top: 0;
-                margin-bottom: 8px;
+                margin-bottom: <?php echo $l_gap; ?>;
                 color: <?php echo $t_color; ?>;
                 font-family: 'Martel', serif;
                 font-weight: 700;
                 font-size: <?php echo $t_size; ?>;
-                text-align: left;
+                text-align: <?php echo $l_align; ?>;
             }
             .gcs-booking-form label {
                 display: block;
@@ -88,15 +94,15 @@ class GCS_Form_Shortcode {
                 box-shadow: 0 0 0 3px <?php echo $b_hover; ?>;
             }
             .gcs-form-row {
-                margin-bottom: 8px;
+                margin-bottom: <?php echo $l_gap; ?>;
                 background: transparent !important;
                 border: none !important;
             }
             .gcs-form-flex {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 15px;
-                margin-bottom: 8px;
+                gap: <?php echo $l_gap; ?>;
+                margin-bottom: <?php echo $l_gap; ?>;
                 background: transparent !important;
                 border: none !important;
             }
@@ -104,10 +110,16 @@ class GCS_Form_Shortcode {
                 flex: 1 1 calc(50% - 15px);
             }
             .gcs-btn-submit {
+                <?php if ($l_btn_align == 'stretch'): ?>
+                display: block !important;
+                width: 100% !important;
+                margin: <?php echo $l_gap; ?> 0 0 0 !important;
+                <?php else: ?>
                 display: inline-block !important;
                 width: auto !important;
                 min-width: 150px !important;
-                margin: 10px 0 0 0 !important;
+                margin: <?php echo $l_gap; ?> 0 0 0 !important;
+                <?php endif; ?>
                 padding: 10px 20px !important;
                 background: <?php echo $b_bg; ?> !important;
                 color: <?php echo $b_color; ?> !important;
@@ -126,6 +138,10 @@ class GCS_Form_Shortcode {
                 color: <?php echo $b_color; ?> !important;
                 transform: translateY(-2px);
             }
+            
+            /* CSS Personalizzato Avanzato */
+            <?php echo $custom_css; ?>
+            
             .gcs-success-message {
                 background: rgba(161, 209, 208, 0.2);
                 color: #1a4581;
@@ -188,7 +204,7 @@ class GCS_Form_Shortcode {
                 </div>
                 <?php endif; ?>
 
-                <div style="margin-top: 5px; text-align: left;">
+                <div style="margin-top: <?php echo $l_gap; ?>; text-align: <?php echo ($l_btn_align == 'stretch') ? 'left' : $l_btn_align; ?>;">
                     <button type="submit" class="gcs-btn-submit">
                         Invia la Richiesta
                     </button>

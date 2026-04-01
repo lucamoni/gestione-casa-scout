@@ -23,6 +23,12 @@ class GCS_Settings_Page {
         register_setting( 'gcs_settings_group', 'gcs_style_btn_color' );
         register_setting( 'gcs_settings_group', 'gcs_style_btn_radius' );
         register_setting( 'gcs_settings_group', 'gcs_style_btn_bg_hover' );
+        
+        // Impaginazione e Layout
+        register_setting( 'gcs_settings_group', 'gcs_layout_title_align' );
+        register_setting( 'gcs_settings_group', 'gcs_layout_row_gap' );
+        register_setting( 'gcs_settings_group', 'gcs_layout_btn_align' );
+        register_setting( 'gcs_settings_group', 'gcs_custom_css' );
     }
 
     public static function render_settings_page() {
@@ -119,6 +125,44 @@ class GCS_Settings_Page {
                     <tr valign="top">
                         <th scope="row">Rotondità Pulsante (es. 20px)</th>
                         <td><input type="text" name="gcs_style_btn_radius" value="<?php echo esc_attr( get_option('gcs_style_btn_radius', '20px') ); ?>" class="regular-text" style="width:100px;"/></td>
+                    </tr>
+                </table>
+                
+                <hr>
+                <h3>Impaginazione e Geometrie</h3>
+                <p class="description">Definisci gli allineamenti spaziali del modulo e le sue distanze.</p>
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row">Allineamento del Titolo</th>
+                        <td>
+                            <select name="gcs_layout_title_align">
+                                <option value="left" <?php selected(get_option('gcs_layout_title_align', 'left'), 'left'); ?>>A Sinistra</option>
+                                <option value="center" <?php selected(get_option('gcs_layout_title_align', 'left'), 'center'); ?>>Al Centro</option>
+                                <option value="right" <?php selected(get_option('gcs_layout_title_align', 'left'), 'right'); ?>>A Destra</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Spazio tra i campi / Interlinea (es. 8px, 20px)</th>
+                        <td><input type="text" name="gcs_layout_row_gap" value="<?php echo esc_attr( get_option('gcs_layout_row_gap', '8px') ); ?>" class="regular-text" style="width:100px;"/></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Allineamento Bottone Invia</th>
+                        <td>
+                            <select name="gcs_layout_btn_align">
+                                <option value="left" <?php selected(get_option('gcs_layout_btn_align', 'left'), 'left'); ?>>A Sinistra</option>
+                                <option value="center" <?php selected(get_option('gcs_layout_btn_align', 'left'), 'center'); ?>>Al Centro</option>
+                                <option value="right" <?php selected(get_option('gcs_layout_btn_align', 'left'), 'right'); ?>>A Destra</option>
+                                <option value="stretch" <?php selected(get_option('gcs_layout_btn_align', 'left'), 'stretch'); ?>>A tutta larghezza</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Codice CSS Personalizzato (Avanzato)</th>
+                        <td>
+                            <textarea name="gcs_custom_css" rows="4" style="width:100%; font-family:monospace; background:#2b2b2b; color:#a9b7c6; padding:10px; border-radius:4px;" placeholder=".gcs-booking-form { }"><?php echo esc_textarea( get_option('gcs_custom_css', '') ); ?></textarea>
+                            <p class="description">Usa questo campo se vuoi applicare regole CSS grafiche assolute senza modificare i file del plugin.</p>
+                        </td>
                     </tr>
                 </table>
                 
