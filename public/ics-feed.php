@@ -20,7 +20,7 @@ class GCS_ICS_Feed {
             echo "VERSION:2.0\r\n";
             echo "PRODID:-//Casa Scout//IT\r\n";
             echo "CALSCALE:GREGORIAN\r\n";
-            echo "X-WR-CALNAME:Prenotazioni Casa Scout\r\n";
+            echo "X-WR-CALNAME:Prenotazioni Canneto\r\n";
 
             foreach ($events as $ev) {
                 $start = date('Ymd', strtotime($ev->start_date));
