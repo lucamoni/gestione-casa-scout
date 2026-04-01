@@ -12,6 +12,11 @@ class GCS_Settings_Page {
         register_setting( 'gcs_settings_group', 'gcs_show_guests_field' );
         register_setting( 'gcs_settings_group', 'gcs_show_message_field' );
         
+        // Impostazioni Webmail PostfixAdmin / Roundcube
+        register_setting( 'gcs_settings_group', 'gcs_webmail_url' );
+        register_setting( 'gcs_settings_group', 'gcs_webmail_user' );
+        register_setting( 'gcs_settings_group', 'gcs_webmail_pass' );
+        
         // Stili Dinamici Form
         register_setting( 'gcs_settings_group', 'gcs_style_title_color' );
         register_setting( 'gcs_settings_group', 'gcs_style_title_size' );
@@ -48,6 +53,26 @@ class GCS_Settings_Page {
                         <td>
                             <input type="email" name="gcs_notification_email" value="<?php echo esc_attr( get_option('gcs_notification_email', get_option('admin_email')) ); ?>" class="regular-text" />
                             <p class="description">Inserisci l'indirizzo a cui vuoi che arrivino le notifiche. Default: email amministratore del sito.</p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">URL Accesso Webmail</th>
+                        <td>
+                            <input type="url" name="gcs_webmail_url" value="<?php echo esc_attr( get_option('gcs_webmail_url', 'http://mail.assdonrenato.it/postfixadmin/login.php') ); ?>" class="large-text" />
+                            <p class="description">Link alla pagina di login, servirà al pulsante "Rispondi per Mail" nel pannello prenotazioni.</p>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Utente Webmail</th>
+                        <td>
+                            <input type="text" name="gcs_webmail_user" value="<?php echo esc_attr( get_option('gcs_webmail_user', '') ); ?>" class="regular-text" />
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Password Webmail</th>
+                        <td>
+                            <input type="password" name="gcs_webmail_pass" value="<?php echo esc_attr( get_option('gcs_webmail_pass', '') ); ?>" class="regular-text" />
+                            <p class="description">Sconsigliamo l'uso di password sensibili se il sito è condiviso con altri amministratori. I bottoni useranno questi dati per auto-compliare il login.</p>
                         </td>
                     </tr>
                 </table>

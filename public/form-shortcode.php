@@ -192,9 +192,23 @@ class GCS_Form_Shortcode {
             <?php endif; ?>
             
             <?php if ( isset( $_GET['gcs_success'] ) && $_GET['gcs_success'] == 1 ) : ?>
-                <div class="gcs-success-message">
-                    La tua richiesta è stata inviata con successo.<br/>Ti contatteremo al più presto!
+                <div id="gcs-success-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999999; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.4s ease;">
+                    <div style="background:#fff; padding:40px; border-radius:12px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.2); transform:translateY(20px); transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); max-width:90%; width:400px;">
+                        <div style="font-size:50px; color:<?php echo $b_bg; ?>; margin-bottom:15px;">✓</div>
+                        <h2 style="margin:0 0 10px 0; color:#333; font-size:24px;">Richiesta Inviata!</h2>
+                        <p style="color:#555; margin-bottom:25px; line-height:1.4;">Ti contatteremo al più presto all'indirizzo email fornito per confermare o declinare il pernotto.</p>
+                        <button onclick="document.getElementById('gcs-success-modal').style.display='none'" style="background:<?php echo $b_bg; ?>; color:<?php echo $b_color; ?>; border:none; padding:10px 25px; border-radius:<?php echo $b_radius; ?>; font-weight:bold; cursor:pointer; font-size:14px;">Chiudi</button>
+                    </div>
                 </div>
+                <script>
+                    setTimeout(function(){
+                        var modal = document.getElementById('gcs-success-modal');
+                        if(modal) {
+                            modal.style.opacity = '1';
+                            modal.firstElementChild.style.transform = 'translateY(0)';
+                        }
+                    }, 100);
+                </script>
             <?php endif; ?>
             
             <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST" class="gcs-booking-form">
@@ -203,7 +217,7 @@ class GCS_Form_Shortcode {
                 
                 <div class="gcs-form-row">
                     <label for="group_name">Nome Gruppo / Reparto *</label>
-                    <input type="text" id="group_name" name="group_name" required placeholder="Es. Piacenza 1 - Reparto Croce del Sud">
+                    <input type="text" id="group_name" name="group_name" required placeholder="Es. Prato 6 - Reparto Eirene Brownsea">
                 </div>
                 
                 <div class="gcs-form-row">
@@ -328,7 +342,7 @@ class GCS_Form_Shortcode {
 
         // Invia email di notifica all'indirizzo configurato o amministratore
         $admin_email = get_option( 'gcs_notification_email', get_option( 'admin_email' ) );
-        $subject = 'Nuova richiesta per Casa Scout: ' . $group_name;
+        $subject = 'Nuova richiesta per Casa Scout - Canneto: ' . $group_name;
         $body = "Hai ricevuto una nuova richiesta di prenotazione:\n\n" .
                 "Gruppo/Reparto: $group_name\n" .
                 "Email di contatto: $contact_email\n" .
@@ -338,7 +352,11 @@ class GCS_Form_Shortcode {
                 "Messaggio:\n$message\n\n" .
                 "Accedi alla Dashboard di WordPress per gestire o rispondere alla richiesta.";
         
-        $headers = array('Content-Type: text/plain; charset=UTF-8');
+        $headers = array(
+            'Content-Type: text/plain; charset=UTF-8',
+            'From: ' . $group_name . ' <' . $contact_email . '>',
+            'Reply-To: ' . $contact_email
+        );
         
         wp_mail( $admin_email, $subject, $body, $headers );
 

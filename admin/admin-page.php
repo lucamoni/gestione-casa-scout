@@ -107,6 +107,19 @@ class GCS_Admin_Page {
                                 
                                 <td class="column-contacts" data-colname="Contatti">
                                     <a href="mailto:<?php echo esc_attr( wp_unslash( $req->contact_email ) ); ?>"><?php echo esc_html( wp_unslash( $req->contact_email ) ); ?></a>
+                                    
+                                    <?php
+                                    $webmail_url = get_option('gcs_webmail_url');
+                                    $webmail_user = get_option('gcs_webmail_user');
+                                    $webmail_pass = get_option('gcs_webmail_pass');
+                                    if ($webmail_url && $webmail_user && $webmail_pass) :
+                                    ?>
+                                    <form action="<?php echo esc_url($webmail_url); ?>" method="POST" target="_blank" style="margin-top:8px;">
+                                        <input type="hidden" name="fUsername" value="<?php echo esc_attr($webmail_user); ?>">
+                                        <input type="hidden" name="fPassword" value="<?php echo esc_attr($webmail_pass); ?>">
+                                        <button type="submit" class="button button-small" style="font-size:11px; padding:0 8px; border-radius:3px;">Rispondi da Webmail 📧</button>
+                                    </form>
+                                    <?php endif; ?>
                                 </td>
                                 
                                 <td class="column-date" data-colname="Periodo">
