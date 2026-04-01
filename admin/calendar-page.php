@@ -1,6 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+/** REFRESH DIAGNOSTICA **/
 class GCS_Calendar_Page {
     public static function render_calendar_page() {
         global $wpdb;

@@ -192,23 +192,14 @@ class GCS_Form_Shortcode {
             <?php endif; ?>
             
             <?php if ( isset( $_GET['gcs_success'] ) && $_GET['gcs_success'] == 1 ) : ?>
-                <div id="gcs-success-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999999; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.4s ease;">
-                    <div style="background:#fff; padding:40px; border-radius:12px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.2); transform:translateY(20px); transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); max-width:90%; width:400px;">
-                        <div style="font-size:50px; color:<?php echo $b_bg; ?>; margin-bottom:15px;">✓</div>
-                        <h2 style="margin:0 0 10px 0; color:#333; font-size:24px;">Richiesta Inviata!</h2>
-                        <p style="color:#555; margin-bottom:25px; line-height:1.4;">Ti contatteremo al più presto all'indirizzo email fornito per confermare o declinare il pernotto.</p>
-                        <button onclick="document.getElementById('gcs-success-modal').style.display='none'" style="background:<?php echo $b_bg; ?>; color:<?php echo $b_color; ?>; border:none; padding:10px 25px; border-radius:<?php echo $b_radius; ?>; font-weight:bold; cursor:pointer; font-size:14px;">Chiudi</button>
+                <div id="gcs-success-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999999; display:flex; align-items:center; justify-content:center;">
+                    <div style="background:#ffffff; padding:50px 40px; border-radius:16px; text-align:center; box-shadow:0 30px 60px rgba(0,0,0,0.5); max-width:90%; width:440px; border: 2px solid <?php echo $b_bg; ?>;">
+                        <div style="font-size:60px; color:<?php echo $b_bg; ?>; margin-bottom:20px;">✓</div>
+                        <h2 style="margin:0 0 15px 0; color:#000000; font-size:28px; font-weight:800;">Richiesta Inviata!</h2>
+                        <p style="color:#222222; margin-bottom:30px; line-height:1.6; font-size:16px; font-weight:500;">La tua richiesta è stata registrata correttamente.<br/>Ti risponderemo via email il prima possibile.</p>
+                        <button onclick="document.getElementById('gcs-success-modal').style.display='none'" style="background:<?php echo $b_bg; ?>; color:<?php echo $b_color; ?>; border:none; padding:12px 35px; border-radius:<?php echo $b_radius; ?>; font-weight:800; cursor:pointer; font-size:15px; text-transform:uppercase; letter-spacing:1px;">Ho Capito</button>
                     </div>
                 </div>
-                <script>
-                    setTimeout(function(){
-                        var modal = document.getElementById('gcs-success-modal');
-                        if(modal) {
-                            modal.style.opacity = '1';
-                            modal.firstElementChild.style.transform = 'translateY(0)';
-                        }
-                    }, 100);
-                </script>
             <?php endif; ?>
             
             <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST" class="gcs-booking-form">
