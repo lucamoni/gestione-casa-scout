@@ -22,30 +22,30 @@ class GCS_Form_Shortcode {
             @import url('https://fonts.googleapis.com/css2?family=Martel:wght@400;700&display=swap');
             
             .gcs-form-container {
-                max-width: 700px;
-                margin: 40px auto;
+                max-width: 650px;
+                margin: 20px auto;
                 background: #ffffff;
-                padding: 40px;
-                border: 1px solid #eaeaea;
-                border-top: 5px solid #1a4581; /* Blu Associazione */
-                box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-                font-family: inherit; /* Eredita dal tema */
+                padding: 30px;
+                border-radius: 20px;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+                font-family: inherit;
             }
             .gcs-form-container h3 {
                 margin-top: 0;
-                margin-bottom: 30px;
+                margin-bottom: 20px;
                 color: #1a4581;
                 font-family: 'Martel', serif;
                 font-weight: 700;
-                font-size: 28px;
+                font-size: 26px;
                 text-align: center;
             }
             .gcs-booking-form label {
                 display: block;
-                margin-bottom: 8px;
+                margin-bottom: 5px;
                 font-weight: 600;
                 color: #444444;
-                font-size: 14px;
+                font-size: 13px;
+                padding-left: 5px;
             }
             .gcs-booking-form input[type="text"],
             .gcs-booking-form input[type="email"],
@@ -53,58 +53,68 @@ class GCS_Form_Shortcode {
             .gcs-booking-form input[type="number"],
             .gcs-booking-form textarea {
                 width: 100%;
-                padding: 14px;
-                border: 1px solid #dcdcdc;
-                background-color: #fcfcfc;
-                font-size: 15px;
+                padding: 12px 18px;
+                border: 1px solid #e0e0e0;
+                background-color: #fafafa;
+                font-size: 14px;
                 color: #333333;
+                border-radius: 12px;
                 transition: all 0.3s ease;
                 box-sizing: border-box;
+            }
+            .gcs-booking-form textarea {
+                border-radius: 16px;
+                resize: vertical;
             }
             .gcs-booking-form input:focus,
             .gcs-booking-form textarea:focus {
                 border-color: #a1d1d0;
                 background-color: #ffffff;
                 outline: none;
-                box-shadow: 0 0 0 3px rgba(161, 209, 208, 0.3);
+                box-shadow: 0 0 0 4px rgba(161, 209, 208, 0.2);
             }
             .gcs-form-row {
-                margin-bottom: 20px;
+                margin-bottom: 15px;
             }
             .gcs-form-flex {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 20px;
-                margin-bottom: 20px;
+                gap: 15px;
+                margin-bottom: 15px;
             }
             .gcs-form-flex > div {
-                flex: 1 1 calc(50% - 10px);
+                flex: 1 1 calc(50% - 15px);
             }
             .gcs-btn-submit {
                 width: 100%;
-                padding: 16px 20px;
-                background: #1a4581; /* Blu scuro */
+                padding: 14px 20px;
+                background: #1a4581;
                 color: #ffffff;
-                font-size: 16px;
+                font-size: 15px;
                 font-weight: 700;
                 text-transform: uppercase;
-                letter-spacing: 1.5px;
+                letter-spacing: 1px;
                 border: none;
+                border-radius: 30px;
                 cursor: pointer;
-                transition: background 0.3s ease, color 0.3s ease;
+                transition: transform 0.2s ease, background 0.3s ease, box-shadow 0.3s ease;
+                box-shadow: 0 4px 15px rgba(26, 69, 129, 0.3);
             }
             .gcs-btn-submit:hover {
-                background: #a1d1d0; /* Verde acqua/teal chiaro */
+                background: #a1d1d0;
                 color: #1a4581;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(161, 209, 208, 0.4);
             }
             .gcs-success-message {
                 background: rgba(161, 209, 208, 0.2);
                 color: #1a4581;
-                padding: 20px;
-                border-left: 5px solid #a1d1d0;
-                margin-bottom: 30px;
+                padding: 15px 20px;
+                border-radius: 12px;
+                margin-bottom: 25px;
                 font-weight: 600;
                 text-align: center;
+                border: 1px solid rgba(161, 209, 208, 0.4);
             }
         </style>
 
