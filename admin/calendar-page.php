@@ -79,7 +79,19 @@ class GCS_Calendar_Page {
                 if ($cur >= $ev->start_date && $cur <= $ev->end_date) {
                     $color = ($ev->contact_email == 'manuale@calendario.local') ? '#e74c3c' : '#3498db';
                     $cleanMsg = str_replace(array("\r","\n","'"), array(" "," ","\'"), $ev->message);
-                    echo '<div onclick="gcsOpenEventModal('.$ev->id.', \''.esc_js($ev->group_name).'\', \''.$ev->start_date.'\', \''.$ev->end_date.'\', \''.esc_js($cleanMsg).'\')" style="background:'.$color.'; color:#fff; padding:4px 6px; margin-bottom:4px; font-size:11px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer;">'.esc_html($ev->group_name).'</div>';
+                    
+                    $is_start = ($cur == $ev->start_date);
+                    $is_end = ($cur == $ev->end_date);
+                    $is_mon = ($cell % 7 == 0);
+                    
+                    $cls = array('gcs-admin-cal-event');
+                    if (!$is_start) $cls[] = 'cont-prev';
+                    if (!$is_end) $cls[] = 'cont-next';
+                    
+                    $showText = ($is_start || $is_mon || $day == 1);
+                    $txtColor = $showText ? '#fff' : 'transparent';
+
+                    echo '<div onclick="gcsOpenEventModal('.$ev->id.', \''.esc_js($ev->group_name).'\', \''.$ev->start_date.'\', \''.$ev->end_date.'\', \''.esc_js($cleanMsg).'\')" class="'.implode(' ', $cls).'" style="background:'.$color.'; color:'.$txtColor.';" title="'.esc_attr($ev->group_name).'">'.esc_html($ev->group_name).'</div>';
                 }
             }
             echo '</td>'; $cell++;
@@ -102,6 +114,21 @@ class GCS_Calendar_Page {
         // Modal e Script
         ?>
         <style>
+            .gcs-admin-cal-event {
+                cursor:pointer; padding:4px 8px; margin:4px 0; font-size:11px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+                transition: filter 0.2s; width: 100%; box-sizing: border-box; position:relative; z-index:1;
+            }
+            .gcs-admin-cal-event:hover { filter: brightness(1.1); z-index:2; }
+            .gcs-admin-cal-event.cont-prev {
+                border-top-left-radius: 0; border-bottom-left-radius: 0;
+                margin-left: -5px; width: calc(100% + 5px);
+            }
+            .gcs-admin-cal-event.cont-next {
+                border-top-right-radius: 0; border-bottom-right-radius: 0;
+                margin-right: -5px; width: calc(100% + 5px);
+            }
+            .gcs-admin-cal-event.cont-prev.cont-next { width: calc(100% + 10px); }
+
             .gcs-modal { display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(3px); align-items:center; justify-content:center; }
             .gcs-modal-content { background:#fff; padding:30px; border-radius:12px; width:450px; max-width:90%; }
         </style>
