@@ -193,7 +193,7 @@ class GCS_Calendar_Shortcode {
                                 el.style.setProperty('background-color', 'transparent', 'important');
                             });
                         });
-                    }
+                    };
                     window.gcsCleanUpThemeStripesAjax();
                 })();
             </script>

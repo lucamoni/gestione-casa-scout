@@ -249,11 +249,11 @@ class GCS_Form_Shortcode {
             document.addEventListener("DOMContentLoaded", function() {
                 var containers = document.querySelectorAll('.gcs-form-container');
                 containers.forEach(function(container) {
-                    // 1. Elimina i famigerati <br> del wpautop che sfalsavano le altezze
+                    /* 1. Elimina i famigerati br del wpautop che sfalsavano le altezze */
                     var brs = container.querySelectorAll('br');
                     brs.forEach(function(br) { br.remove(); });
                     
-                    // 2. Rimuove o ripulisce i paragrafi vuoti usati come distanziatori 
+                    /* 2. Rimuove o ripulisce i paragrafi vuoti usati come distanziatori */
                     var ps = container.querySelectorAll('p');
                     ps.forEach(function(p) {
                         if(p.innerHTML.trim() === '' || p.innerHTML.trim() === '&nbsp;') {
@@ -265,14 +265,14 @@ class GCS_Form_Shortcode {
                         }
                     });
 
-                    // 3. Stronca le righe orizzontali alternate del tema resettando gli sfondi interni
+                    /* 3. Stronca le righe orizzontali alternate del tema resettando gli sfondi interni */
                     var internals = container.querySelectorAll('form, div, span, label');
                     internals.forEach(function(el) {
                         el.style.setProperty('background-image', 'none', 'important');
                         el.style.setProperty('background-color', 'transparent', 'important');
                     });
                     
-                    // 4. FIX ULTIMATE: Se l'utente ha incollato lo shortcode dalla chat, WP lo avvolge in un <pre> o <code> a righe!
+                    /* 4. FIX ULTIMATE: Se l'utente ha incollato lo shortcode dalla chat, WP lo avvolge in un pre o code a righe! */
                     var parent = container.parentElement;
                     while(parent && parent.tagName !== 'BODY') {
                         if(parent.tagName === 'PRE' || parent.tagName === 'CODE' || parent.classList.contains('wpb_wrapper')) {
