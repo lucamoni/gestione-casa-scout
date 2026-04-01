@@ -102,9 +102,15 @@ class GCS_Calendar_Page {
             <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; margin-top:20px;">
                 <div style="flex: 1 1 60%; background: #fff; border: 1px solid #ccd0d4; padding: 20px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,.05);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                        <a href="?page=gcs-calendar&c_month=<?php echo $month == 1 ? 12 : $month - 1; ?>&c_year=<?php echo $month == 1 ? $year - 1 : $year; ?>" class="button">&laquo; <?php echo $months_names[$month-1 == 0 ? 12 : $month-1]; ?></a>
+                        <?php 
+                            $prev_m = $month == 1 ? 12 : $month - 1;
+                            $prev_y = $month == 1 ? $year - 1 : $year;
+                            $next_m = $month == 12 ? 1 : $month + 1;
+                            $next_y = $month == 12 ? $year + 1 : $year;
+                        ?>
+                        <a href="?page=gcs-calendar&c_month=<?php echo $prev_m; ?>&c_year=<?php echo $prev_y; ?>" class="button">&laquo; <?php echo $months_names[$prev_m]; ?></a>
                         <h2 style="margin: 0; font-weight:700;"><?php echo $months_names[$month] . ' ' . $year; ?></h2>
-                        <a href="?page=gcs-calendar&c_month=<?php echo $month == 12 ? 1 : $month + 1; ?>&c_year=<?php echo $month == 12 ? $year + 1 : $year; ?>" class="button"><?php echo $months_names[$month+1 == 13 ? 1 : $month+1]; ?> &raquo;</a>
+                        <a href="?page=gcs-calendar&c_month=<?php echo $next_m; ?>&c_year=<?php echo $next_y; ?>" class="button"><?php echo $months_names[$next_m]; ?> &raquo;</a>
                     </div>
                     
                     <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
