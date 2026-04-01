@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Gestione Casa Scout
  * Description: Sistema cucito su misura per la casa scout: form contatti con salvataggio nel database, Dashboard Admin per la gestione e calendario richieste. Utilizzare [gcs_booking_form] per il modulo e [gcs_calendar] per il calendario.
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author: Luca Moni
  * Text Domain: gestione-casa-scout
  */

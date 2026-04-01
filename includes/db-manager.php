@@ -35,7 +35,8 @@ class GCS_DB_Manager {
     public static function get_requests() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'gcs_requests';
-        return $wpdb->get_results( "SELECT * FROM $table_name ORDER BY start_date ASC" );
+        // Escludiamo gli inserimenti manuali dal calendario (identificati dall'email fittizia)
+        return $wpdb->get_results( "SELECT * FROM $table_name WHERE contact_email != 'manuale@calendario.local' ORDER BY start_date ASC" );
     }
 
     public static function update_status( $id, $status ) {
