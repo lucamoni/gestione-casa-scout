@@ -49,4 +49,20 @@ class GCS_DB_Manager {
             array( '%d' )
         );
     }
+
+    public static function update_request( $id, $data ) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'gcs_requests';
+        return $wpdb->update(
+            $table_name,
+            $data,
+            array( 'id' => $id )
+        );
+    }
+
+    public static function get_request( $id ) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'gcs_requests';
+        return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $id ) );
+    }
 }
