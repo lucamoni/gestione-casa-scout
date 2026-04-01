@@ -109,7 +109,7 @@ class GCS_Admin_Page {
                                     <a href="mailto:<?php echo esc_attr( wp_unslash( $req->contact_email ) ); ?>"><?php echo esc_html( wp_unslash( $req->contact_email ) ); ?></a>
                                     
                                     <?php
-                                    $webmail_url = get_option('gcs_webmail_url');
+                                    $webmail_url = get_option('gcs_webmail_url', 'http://mail.assdonrenato.it');
                                     if ($webmail_url) :
                                     ?>
                                     <div style="margin-top:8px;">
