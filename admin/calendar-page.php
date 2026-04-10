@@ -50,7 +50,7 @@ class GCS_Calendar_Page {
         $first_weekday = ($first_weekday == 0) ? 7 : $first_weekday;
         $months_names = array('', 'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre');
 
-        echo '<div class="wrap"><h1 class="wp-heading-inline">Calendario Occupazione Casa Scout</h1><hr class="wp-header-end">';
+        echo '<div class="wrap"><h1 class="wp-heading-inline">Calendario Prenotazioni Casa Scout</h1><hr class="wp-header-end">';
         echo '<div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start; margin-top:20px;">';
         
         // Colonna Calendario

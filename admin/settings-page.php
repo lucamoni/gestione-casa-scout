@@ -12,6 +12,10 @@ class GCS_Settings_Page {
         register_setting( 'gcs_settings_group', 'gcs_show_guests_field' );
         register_setting( 'gcs_settings_group', 'gcs_show_message_field' );
         
+        // Impostazioni Area Riservata
+        register_setting( 'gcs_settings_group', 'gcs_reserved_email' );
+        register_setting( 'gcs_settings_group', 'gcs_reserved_password' );
+        
         // Impostazioni Webmail PostfixAdmin / Roundcube
         register_setting( 'gcs_settings_group', 'gcs_webmail_url' );
         register_setting( 'gcs_settings_group', 'gcs_webmail_user' );
@@ -60,6 +64,24 @@ class GCS_Settings_Page {
                         <td>
                             <input type="url" name="gcs_webmail_url" value="<?php echo esc_attr( get_option('gcs_webmail_url', 'http://mail.assdonrenato.it') ); ?>" class="large-text" />
                             <p class="description">Link alla tua pagina Webmail (es. http://mail.assdonrenato.it). Il pulsante in Dashboard aprirà semplicemente il link in una nuova scheda.</p>
+                        </td>
+                    </tr>
+                </table>
+                <hr>
+                
+                <h3>Area Riservata (Frontend)</h3>
+                <p class="description">Imposta le credenziali di accesso per la gestione del calendario sul frontend tramite lo shortcode <strong>[gcs_reserved_area]</strong>.</p>
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row">Email di accesso</th>
+                        <td>
+                            <input type="email" name="gcs_reserved_email" value="<?php echo esc_attr( get_option('gcs_reserved_email', '') ); ?>" class="regular-text" />
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Password di accesso</th>
+                        <td>
+                            <input type="text" name="gcs_reserved_password" value="<?php echo esc_attr( get_option('gcs_reserved_password', '') ); ?>" class="regular-text" />
                         </td>
                     </tr>
                 </table>
