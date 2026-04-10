@@ -7,10 +7,40 @@ class GCS_Reserved_Area_Shortcode {
         add_action( 'template_redirect', array( __CLASS__, 'handle_actions' ) );
     }
 
+    public static function get_authorized_users() {
+        $users_opt = get_option('gcs_reserved_users', '');
+        $users = [];
+        if (!empty($users_opt)) {
+            $lines = explode("\n", str_replace("\r", "", $users_opt));
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (strpos($line, ':') !== false) {
+                    list($u, $p) = explode(':', $line, 2);
+                    $users[trim($u)] = trim($p);
+                }
+            }
+        }
+        return $users;
+    }
+
+    public static function is_authenticated() {
+        $users = self::get_authorized_users();
+        if (empty($users)) return false;
+
+        if (isset($_COOKIE['gcs_reserved_auth'])) {
+            $cookie_vals = explode('|', $_COOKIE['gcs_reserved_auth'], 2);
+            if (count($cookie_vals) == 2) {
+                $username = $cookie_vals[0];
+                $hash = $cookie_vals[1];
+                if (isset($users[$username]) && md5($username . $users[$username]) === $hash) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static function handle_actions() {
-        $email_opt = get_option('gcs_reserved_email', '');
-        $pass_opt = get_option('gcs_reserved_password', '');
-        
         // Handle Logout
         if (isset($_GET['gcs_logout'])) {
             setcookie('gcs_reserved_auth', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN);
@@ -20,11 +50,12 @@ class GCS_Reserved_Area_Shortcode {
 
         // Handle Login
         if (isset($_POST['gcs_reserved_login_submit'])) {
-            $email = sanitize_email($_POST['gcs_email']);
+            $username = sanitize_text_field($_POST['gcs_username']);
             $pass = sanitize_text_field($_POST['gcs_password']);
+            $users = self::get_authorized_users();
 
-            if ($email === $email_opt && $pass === $pass_opt && !empty($email_opt)) {
-                setcookie('gcs_reserved_auth', md5($email_opt . $pass_opt), time() + 86400, COOKIEPATH, COOKIE_DOMAIN);
+            if (isset($users[$username]) && $users[$username] === $pass) {
+                setcookie('gcs_reserved_auth', $username . '|' . md5($username . $pass), time() + 86400, COOKIEPATH, COOKIE_DOMAIN);
                 wp_safe_redirect(remove_query_arg('gcs_login_error'));
                 exit;
             } else {
@@ -32,15 +63,46 @@ class GCS_Reserved_Area_Shortcode {
                 exit;
             }
         }
-    }
 
-    public static function is_authenticated() {
-        $email_opt = get_option('gcs_reserved_email', '');
-        $pass_opt = get_option('gcs_reserved_password', '');
-        if (empty($email_opt) || empty($pass_opt)) return false;
+        if (self::is_authenticated()) {
+            // Frontend Actions
+            if (isset($_POST['gcs_front_update_status']) && wp_verify_nonce($_POST['gcs_front_nonce'], 'front_status')) {
+                $req_id = intval($_POST['request_id']);
+                $new_status = sanitize_text_field($_POST['new_status']);
+                if (in_array($new_status, ['pending','confirmed','rejected'])) {
+                    GCS_DB_Manager::update_status($req_id, $new_status);
+                }
+                wp_safe_redirect(add_query_arg(array('gcs_tab'=>'requests', 'msg'=>'status_updated'), remove_query_arg(array('gcs_tab','msg')))); 
+                exit;
+            }
 
-        $expected = md5($email_opt . $pass_opt);
-        return isset($_COOKIE['gcs_reserved_auth']) && $_COOKIE['gcs_reserved_auth'] === $expected;
+            if (isset($_POST['gcs_front_delete_req']) && wp_verify_nonce($_POST['gcs_front_nonce'], 'front_status')) {
+                global $wpdb;
+                $wpdb->delete($wpdb->prefix . 'gcs_requests', ['id' => intval($_POST['request_id'])], ['%d']);
+                wp_safe_redirect(add_query_arg(array('gcs_tab'=>'requests', 'msg'=>'deleted'), remove_query_arg(array('gcs_tab','msg')))); 
+                exit;
+            }
+            
+            if (isset($_POST['gcs_front_settings_save']) && wp_verify_nonce($_POST['gcs_front_nonce'], 'front_settings')) {
+                $opts = ['gcs_notification_email', 'gcs_webmail_url', 'gcs_form_title', 'gcs_show_guests_field', 'gcs_show_message_field', 'gcs_style_title_color', 'gcs_style_title_size', 'gcs_style_label_color', 'gcs_style_input_bg', 'gcs_style_input_border', 'gcs_style_input_radius', 'gcs_style_btn_bg', 'gcs_style_btn_color', 'gcs_style_btn_radius', 'gcs_style_btn_bg_hover', 'gcs_layout_title_align', 'gcs_layout_row_gap', 'gcs_layout_btn_align', 'gcs_custom_css', 'gcs_reserved_users'];
+                
+                update_option('gcs_show_guests_field', isset($_POST['gcs_show_guests_field']) ? 1 : 0);
+                update_option('gcs_show_message_field', isset($_POST['gcs_show_message_field']) ? 1 : 0);
+
+                foreach($opts as $o) {
+                    if ($o == 'gcs_show_guests_field' || $o == 'gcs_show_message_field') continue;
+                    if (isset($_POST[$o])) {
+                        if ($o == 'gcs_custom_css' || $o == 'gcs_reserved_users') {
+                            update_option($o, wp_unslash($_POST[$o])); 
+                        } else {
+                            update_option($o, sanitize_text_field($_POST[$o]));
+                        }
+                    }
+                }
+                wp_safe_redirect(add_query_arg(array('gcs_tab'=>'settings', 'msg'=>'settings_saved'), remove_query_arg(array('gcs_tab','msg')))); 
+                exit;
+            }
+        }
     }
 
     public static function render_reserved_area() {
@@ -57,22 +119,212 @@ class GCS_Reserved_Area_Shortcode {
                 <?php endif; ?>
                 <form method="POST" action="">
                     <p style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #444;">Email</label>
-                        <input type="email" name="gcs_email" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #444;">Utente / Email</label>
+                        <input type="text" name="gcs_username" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px;">
                     </p>
                     <p style="margin-bottom: 25px;">
                         <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #444;">Password</label>
                         <input type="password" name="gcs_password" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px;">
                     </p>
                     <button type="submit" name="gcs_reserved_login_submit" style="width: 100%; background: #1a4581; color: #fff; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background 0.3s; font-size: 16px;">Accedi</button>
-                    <p style="text-align: center; font-size: 12px; color: #888; margin-top: 15px; margin-bottom: 0;">Accesso riservato alla gestione calendario.</p>
                 </form>
             </div>
             <?php
             return ob_get_clean();
         }
 
-        return self::render_calendar_management();
+        $tab = isset($_GET['gcs_tab']) ? sanitize_text_field($_GET['gcs_tab']) : 'requests';
+        $tabs_style = 'padding: 10px 20px; text-decoration: none; font-weight: bold; margin-bottom: -2px; transition: color 0.3s;';
+        
+        ob_start();
+        ?>
+        <div class="gcs-reserved-wrapper" style="font-family: inherit; margin: 30px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eaeaea;">
+                <h2 style="margin: 0; color: #1a4581; font-size: 24px; font-family: 'Martel', serif;">Area Riservata</h2>
+                <a href="<?php echo esc_url(add_query_arg('gcs_logout', '1')); ?>" style="background: #e74c3c; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; transition: background 0.3s;" onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'">Esci Sessione</a>
+            </div>
+
+            <!-- TABS -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ccc; padding-bottom: 0px; flex-wrap: wrap;">
+                <a href="<?php echo esc_url(add_query_arg('gcs_tab', 'requests')); ?>" style="<?php echo $tabs_style; ?> color: <?php echo $tab=='requests'?'#1a4581':'#888'; ?>; border-bottom: 3px solid <?php echo $tab=='requests'?'#1a4581':'transparent'; ?>;">Bacheca Richieste</a>
+                <a href="<?php echo esc_url(add_query_arg('gcs_tab', 'calendar')); ?>" style="<?php echo $tabs_style; ?> color: <?php echo $tab=='calendar'?'#1a4581':'#888'; ?>; border-bottom: 3px solid <?php echo $tab=='calendar'?'#1a4581':'transparent'; ?>;">Calendario</a>
+                <a href="<?php echo esc_url(add_query_arg('gcs_tab', 'settings')); ?>" style="<?php echo $tabs_style; ?> color: <?php echo $tab=='settings'?'#1a4581':'#888'; ?>; border-bottom: 3px solid <?php echo $tab=='settings'?'#1a4581':'transparent'; ?>;">Impostazioni</a>
+            </div>
+
+            <?php
+            if (isset($_GET['msg'])) {
+                $msg = sanitize_text_field($_GET['msg']);
+                if ($msg == 'status_updated') echo '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; font-weight:bold;">Stato aggiornato con successo.</div>';
+                if ($msg == 'deleted') echo '<div style="background:#fff3cd; color:#856404; padding:15px; border-radius:4px; margin-bottom:20px; font-weight:bold;">Richiesta eliminata.</div>';
+                if ($msg == 'settings_saved') echo '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; font-weight:bold;">Impostazioni salvate con successo.</div>';
+            }
+
+            if ($tab == 'requests') echo self::render_requests_management();
+            elseif ($tab == 'calendar') echo self::render_calendar_management();
+            elseif ($tab == 'settings') echo self::render_settings_management();
+            ?>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    public static function render_requests_management() {
+        $requests = GCS_DB_Manager::get_requests();
+        ob_start();
+        ?>
+        <div style="background:#fff; border:1px solid #eaeaea; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,.05); padding:20px; overflow-x:auto;">
+            <?php if ( empty( $requests ) ) : ?>
+                <p>Nessuna richiesta di prenotazione trovata al momento.</p>
+            <?php else : ?>
+                <table style="width:100%; border-collapse:collapse; min-width:600px;">
+                    <thead style="background:#f9f9f9;">
+                        <tr>
+                            <th style="padding:15px; text-align:left; border-bottom:2px solid #eee; text-transform:uppercase; font-size:12px; color:#666;">Dettagli Gruppo</th>
+                            <th style="padding:15px; text-align:left; border-bottom:2px solid #eee; text-transform:uppercase; font-size:12px; color:#666;">Periodo & Ospiti</th>
+                            <th style="padding:15px; text-align:left; border-bottom:2px solid #eee; text-transform:uppercase; font-size:12px; color:#666;">Stato</th>
+                            <th style="padding:15px; text-align:left; border-bottom:2px solid #eee; text-transform:uppercase; font-size:12px; color:#666; width: 150px;">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ( $requests as $req ) : ?>
+                            <tr style="border-bottom:1px solid #f0f0f0;">
+                                <td style="padding:15px; vertical-align:top;">
+                                    <strong style="display:block; font-size:16px; color:#1a4581; margin-bottom:5px;"><?php echo esc_html( wp_unslash( $req->group_name ) ); ?></strong>
+                                    <div style="color:#777; font-size:13px; margin-bottom:8px;">Ricevuta: <?php echo esc_html( date( 'd/m/Y H:i', strtotime( $req->created_at ) ) ); ?></div>
+                                    <a href="mailto:<?php echo esc_attr( wp_unslash( $req->contact_email ) ); ?>" style="color:#d35400; text-decoration:none; display:inline-block; margin-bottom:5px;">✉️ <?php echo esc_html( wp_unslash( $req->contact_email ) ); ?></a>
+                                    <?php if (!empty($req->message)): ?>
+                                        <div style="margin-top:10px; font-size:13px; background:#fefefe; padding:10px; border-left:3px solid #ddd; font-style:italic; border-radius:0 4px 4px 0;">
+                                            <?php echo nl2br( esc_html( wp_unslash( $req->message ) ) ); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                
+                                <td style="padding:15px; vertical-align:top; font-size:14px;">
+                                    <div><strong>Dal:</strong> <?php echo esc_html( date( 'd/m/Y', strtotime( $req->start_date ) ) ); ?></div>
+                                    <div style="margin-bottom:8px;"><strong>Al:</strong> <?php echo esc_html( date( 'd/m/Y', strtotime( $req->end_date ) ) ); ?></div>
+                                    <div style="display:inline-block; background:#eee; padding:3px 8px; border-radius:4px; font-size:12px;"><strong><?php echo esc_html( $req->guests_count ); ?></strong> ospiti</div>
+                                </td>
+                                
+                                <td style="padding:15px; vertical-align:top;">
+                                    <?php 
+                                        $bg_color = '#f0f0f1';
+                                        $text_color = '#3c434a';
+                                        $label = ucfirst(esc_html($req->status));
+                                        
+                                        if ( $req->status === 'confirmed' ) {
+                                            $bg_color = '#edfaeb'; $text_color = '#007017'; $label = 'Confermata';
+                                        } elseif ( $req->status === 'rejected' ) {
+                                            $bg_color = '#fcf0f1'; $text_color = '#d63638'; $label = 'Rifiutata';
+                                        } elseif ( $req->status === 'pending' ) {
+                                            $bg_color = '#fef8ee'; $text_color = '#b32d2e'; $label = 'In Attesa';
+                                        }
+                                    ?>
+                                    <span style="display:inline-block; padding:5px 12px; border-radius:20px; font-weight:bold; font-size:12px; background:<?php echo $bg_color; ?>; color:<?php echo $text_color; ?>; border: 1px solid rgba(0,0,0,0.05);"><?php echo $label; ?></span>
+                                </td>
+
+                                <td style="padding:15px; vertical-align:top;">
+                                    <form method="POST" style="margin-bottom:10px;">
+                                        <input type="hidden" name="gcs_front_update_status" value="1">
+                                        <?php wp_nonce_field('front_status', 'gcs_front_nonce'); ?>
+                                        <input type="hidden" name="request_id" value="<?php echo esc_attr( $req->id ); ?>">
+                                        <select name="new_status" style="width:100%; border:1px solid #ccc; padding:6px; border-radius:4px; margin-bottom:5px; font-size:13px;">
+                                            <option value="pending" <?php selected( $req->status, 'pending' ); ?>>In Attesa</option>
+                                            <option value="confirmed" <?php selected( $req->status, 'confirmed' ); ?>>Confermata</option>
+                                            <option value="rejected" <?php selected( $req->status, 'rejected' ); ?>>Rifiutata</option>
+                                        </select>
+                                        <button type="submit" style="width:100%; background:#1a4581; color:#fff; border:none; padding:6px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px;">Aggiorna</button>
+                                    </form>
+                                    <form method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare questa richiesta? L\'azione è irreversibile.');">
+                                        <input type="hidden" name="gcs_front_delete_req" value="1">
+                                        <?php wp_nonce_field('front_status', 'gcs_front_nonce'); ?>
+                                        <input type="hidden" name="request_id" value="<?php echo esc_attr( $req->id ); ?>">
+                                        <button type="submit" style="width:100%; background:#fff; color:#e74c3c; border:1px solid #e74c3c; padding:6px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px; transition:all 0.3s;" onmouseover="this.style.background='#e74c3c'; this.style.color='#fff';" onmouseout="this.style.background='#fff'; this.style.color='#e74c3c';">Elimina</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    public static function render_settings_management() {
+        ob_start();
+        ?>
+        <div style="background:#fff; border:1px solid #eaeaea; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,.05); padding:30px;">
+            <form method="POST">
+                <input type="hidden" name="gcs_front_settings_save" value="1">
+                <?php wp_nonce_field('front_settings', 'gcs_front_nonce'); ?>
+                
+                <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px; color:#333;">Configurazione Form e Frontend</h3>
+                
+                <div style="display:flex; flex-wrap:wrap; gap:20px; margin-bottom: 20px;">
+                    <div style="flex:1 1 300px;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Email notifiche</label>
+                        <input type="email" name="gcs_notification_email" value="<?php echo esc_attr( get_option('gcs_notification_email', get_option('admin_email')) ); ?>" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                    <div style="flex:1 1 300px;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Titolo del Form</label>
+                        <input type="text" name="gcs_form_title" value="<?php echo esc_attr( get_option('gcs_form_title', 'Invia una Richiesta di Prenotazione') ); ?>" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 30px;">
+                    <label style="display:block; margin-bottom:10px; cursor:pointer;">
+                        <input type="checkbox" name="gcs_show_guests_field" value="1" <?php checked( 1, get_option('gcs_show_guests_field', 1), true ); ?> />
+                        Mostra campo "Numero persone" nel form
+                    </label>
+                    <label style="display:block; margin-bottom:10px; cursor:pointer;">
+                        <input type="checkbox" name="gcs_show_message_field" value="1" <?php checked( 1, get_option('gcs_show_message_field', 1), true ); ?> />
+                        Mostra campo "Messaggio aggiuntivo" nel form
+                    </label>
+                </div>
+
+                <h3 style="border-bottom:2px solid #eee; padding-bottom:10px; color:#333;">Design e Colori</h3>
+                <div style="display:flex; flex-wrap:wrap; gap:20px; margin-bottom: 30px;">
+                    <div style="flex:1 1 200px;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Colore Titolo</label>
+                        <input type="color" name="gcs_style_title_color" value="<?php echo esc_attr( get_option('gcs_style_title_color', '#1a4581') ); ?>" style="height:35px; width:100%;">
+                    </div>
+                    <div style="flex:1 1 200px;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Grandezza Titolo</label>
+                        <input type="text" name="gcs_style_title_size" value="<?php echo esc_attr( get_option('gcs_style_title_size', '24px') ); ?>" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                    <div style="flex:1 1 200px;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Testo Bottone</label>
+                        <input type="color" name="gcs_style_btn_color" value="<?php echo esc_attr( get_option('gcs_style_btn_color', '#ffffff') ); ?>" style="height:35px; width:100%;">
+                    </div>
+                    <div style="flex:1 1 200px;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Sfondo Bottone</label>
+                        <input type="color" name="gcs_style_btn_bg" value="<?php echo esc_attr( get_option('gcs_style_btn_bg', '#1a4581') ); ?>" style="height:35px; width:100%;">
+                    </div>
+                    <div style="flex:1 1 200px;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Hover Bottone</label>
+                        <input type="color" name="gcs_style_btn_bg_hover" value="<?php echo esc_attr( get_option('gcs_style_btn_bg_hover', '#a1d1d0') ); ?>" style="height:35px; width:100%;">
+                    </div>
+                    <div style="flex:1 1 200px;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Rotondità Bottone</label>
+                        <input type="text" name="gcs_style_btn_radius" value="<?php echo esc_attr( get_option('gcs_style_btn_radius', '20px') ); ?>" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                    </div>
+                </div>
+
+                <h3 style="border-bottom:2px solid #eee; padding-bottom:10px; color:#333;">Impostazioni Area Riservata Multiple</h3>
+                <div style="margin-bottom: 30px;">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px;">Utenti Autorizzati (uno per riga: username:password)</label>
+                    <textarea name="gcs_reserved_users" rows="4" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; font-family:monospace;"><?php echo esc_textarea( get_option('gcs_reserved_users', '') ); ?></textarea>
+                    <p style="font-size:12px; color:#777; margin-top:5px;">Se li modifichi e scolleghi il tuo stesso utente, verrai disconnesso.</p>
+                </div>
+
+                <div style="border-top:1px solid #eee; padding-top:20px;">
+                    <button type="submit" style="background: #27ae60; color: white; border: none; padding: 12px 25px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 16px; transition: background 0.3s;" onmouseover="this.style.background='#2ecc71'" onmouseout="this.style.background='#27ae60'">Salva Tutte le Impostazioni</button>
+                </div>
+            </form>
+        </div>
+        <?php
+        return ob_get_clean();
     }
 
     public static function render_calendar_management() {
@@ -129,12 +381,7 @@ class GCS_Reserved_Area_Shortcode {
         $months_names = array('', 'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre');
 
         ?>
-        <div class="gcs-reserved-management" style="font-family: inherit; margin: 30px 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eaeaea;">
-                <h2 style="margin: 0; color: #1a4581; font-size: 24px; font-family: 'Martel', serif;">Gestione Area Riservata</h2>
-                <a href="<?php echo esc_url(add_query_arg('gcs_logout', '1')); ?>" style="background: #e74c3c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; transition: background 0.3s;" onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'">Esci Sessione</a>
-            </div>
-            
+        <div class="gcs-reserved-management" style="font-family: inherit;">
             <?php echo $message_html; ?>
 
             <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start;">

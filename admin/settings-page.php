@@ -13,8 +13,7 @@ class GCS_Settings_Page {
         register_setting( 'gcs_settings_group', 'gcs_show_message_field' );
         
         // Impostazioni Area Riservata
-        register_setting( 'gcs_settings_group', 'gcs_reserved_email' );
-        register_setting( 'gcs_settings_group', 'gcs_reserved_password' );
+        register_setting( 'gcs_settings_group', 'gcs_reserved_users' );
         
         // Impostazioni Webmail PostfixAdmin / Roundcube
         register_setting( 'gcs_settings_group', 'gcs_webmail_url' );
@@ -70,18 +69,14 @@ class GCS_Settings_Page {
                 <hr>
                 
                 <h3>Area Riservata (Frontend)</h3>
-                <p class="description">Imposta le credenziali di accesso per la gestione del calendario sul frontend tramite lo shortcode <strong>[gcs_reserved_area]</strong>.</p>
+                <p class="description">Imposta le credenziali di accesso per l'Area Riservata (raggiungibile inserendo lo shortcode <strong>[gcs_reserved_area]</strong> in una pagina).<br>
+                Puoi inserire più utenti, uno per riga. Usa il formato <code>username:password</code> oppure <code>email:password</code>.</p>
                 <table class="form-table">
                     <tr valign="top">
-                        <th scope="row">Email di accesso</th>
+                        <th scope="row">Utenti Autorizzati</th>
                         <td>
-                            <input type="email" name="gcs_reserved_email" value="<?php echo esc_attr( get_option('gcs_reserved_email', '') ); ?>" class="regular-text" />
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">Password di accesso</th>
-                        <td>
-                            <input type="text" name="gcs_reserved_password" value="<?php echo esc_attr( get_option('gcs_reserved_password', '') ); ?>" class="regular-text" />
+                            <textarea name="gcs_reserved_users" rows="4" class="large-text" placeholder="mario:segreto123&#10;luigi@email.it:pass456"><?php echo esc_textarea( get_option('gcs_reserved_users', '') ); ?></textarea>
+                            <p class="description">Esempio: <code>admin:scout2026</code></p>
                         </td>
                     </tr>
                 </table>
