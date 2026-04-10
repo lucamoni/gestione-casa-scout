@@ -88,19 +88,27 @@ class GCS_Calendar_Shortcode {
                     width: 14.28%;
                 }
                 .gcs-pub-cal-day-num {
-                    display: block;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
                     font-weight: bold;
                     margin-bottom: 5px;
                     color: #555;
+                    height: 28px;
+                }
+                .gcs-pub-cal-day-num-inner {
+                    display: inline-flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 24px;
+                    min-width: 24px;
                 }
                 .gcs-pub-cal-today {
                     background: #fdfdfd;
                 }
-                .gcs-pub-cal-today .gcs-pub-cal-day-num {
-                    display: inline-block;
+                .gcs-pub-cal-today .gcs-pub-cal-day-num-inner {
                     background: #1a4581;
                     color: white;
-                    padding: 2px 6px;
                     border-radius: 50%;
                 }
                 .gcs-pub-cal-event {
@@ -295,7 +303,7 @@ class GCS_Calendar_Shortcode {
                             $is_today_class = ($current_date == date('Y-m-d')) ? 'gcs-pub-cal-today' : '';
 
                             echo '<td class="'.$is_today_class.'">';
-                            echo '<span class="gcs-pub-cal-day-num">' . $day . '</span>';
+                            echo '<div class="gcs-pub-cal-day-num"><span class="gcs-pub-cal-day-num-inner">' . $day . '</span></div>';
                             
                             foreach ($day_events as $de) {
                                 $is_start = ($current_date == $de->start_date);

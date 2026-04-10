@@ -525,8 +525,8 @@ class GCS_Reserved_Area_Shortcode {
                                         $bgToday = ($cur == date('Y-m-d')) ? 'background-color:#f0f6fc;' : '';
                                         echo '<td style="border:1px solid #eee; padding:8px; height:100px; vertical-align:top; width: 14.28%; '.$bgToday.'">';
                                         
-                                        $todayStyle = ($cur == date('Y-m-d')) ? 'background: #1a4581; color: white; display: inline-block; padding: 2px 6px; border-radius: 50%; font-size: 13px;' : 'color: #555;';
-                                        echo '<span style="display:block; margin-bottom:8px; font-weight:bold; '.$todayStyle.'">'.$day.'</span>';
+                                        $todayStyle = ($cur == date('Y-m-d')) ? 'background: #1a4581; color: white; display: inline-flex; justify-content:center; align-items:center; border-radius: 50%; width: 24px; height: 24px;' : 'color: #555; display: inline-flex; justify-content:center; align-items:center; width: 24px; height: 24px;';
+                                        echo '<div style="display:flex; justify-content:center; align-items:center; height:28px; margin-bottom:5px;"><span style="font-weight:bold; font-size:13px; line-height:1; '.$todayStyle.'">'.$day.'</span></div>';
                                         
                                         foreach ($events as $ev) {
                                             if ($cur >= $ev->start_date && $cur <= $ev->end_date) {

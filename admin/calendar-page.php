@@ -74,7 +74,7 @@ class GCS_Calendar_Page {
             $cur = sprintf("%04d-%02d-%02d", $year, $month, $day);
             $bgToday = ($cur == date('Y-m-d')) ? 'background-color:#f0f6fc;' : '';
             echo '<td style="border:1px solid #eee; padding:5px; height:110px; vertical-align:top; '.$bgToday.'">';
-            echo '<span style="display:block; margin-bottom:5px; font-weight:bold; color:#444; opacity:0.6;">'.$day.'</span>';
+            echo '<div style="display:flex; justify-content:center; align-items:center; height:24px; margin-bottom:5px;"><span style="font-weight:bold; color:#444; opacity:0.6;">'.$day.'</span></div>';
             foreach ($events as $ev) {
                 if ($cur >= $ev->start_date && $cur <= $ev->end_date) {
                     $color = ($ev->contact_email == 'manuale@calendario.local') ? '#e74c3c' : '#3498db';
