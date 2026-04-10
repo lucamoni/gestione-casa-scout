@@ -133,8 +133,7 @@ class GCS_Reserved_Area_Shortcode {
             return ob_get_clean();
         }
 
-        $tab = isset($_GET['gcs_tab']) ? sanitize_text_field($_GET['gcs_tab']) : 'requests';
-        $tabs_style = 'padding: 10px 20px; text-decoration: none; font-weight: bold; margin-bottom: -2px; transition: color 0.3s;';
+        $tabs_style = 'padding: 10px 20px; text-decoration: none; font-weight: bold; margin-bottom: -2px; transition: color 0.3s; cursor: pointer;';
         
         ob_start();
         ?>
@@ -146,9 +145,9 @@ class GCS_Reserved_Area_Shortcode {
 
             <!-- TABS -->
             <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ccc; padding-bottom: 0px; flex-wrap: wrap;">
-                <a href="<?php echo esc_url(add_query_arg('gcs_tab', 'requests')); ?>" style="<?php echo $tabs_style; ?> color: <?php echo $tab=='requests'?'#1a4581':'#888'; ?>; border-bottom: 3px solid <?php echo $tab=='requests'?'#1a4581':'transparent'; ?>;">Bacheca Richieste</a>
-                <a href="<?php echo esc_url(add_query_arg('gcs_tab', 'calendar')); ?>" style="<?php echo $tabs_style; ?> color: <?php echo $tab=='calendar'?'#1a4581':'#888'; ?>; border-bottom: 3px solid <?php echo $tab=='calendar'?'#1a4581':'transparent'; ?>;">Calendario</a>
-                <a href="<?php echo esc_url(add_query_arg('gcs_tab', 'settings')); ?>" style="<?php echo $tabs_style; ?> color: <?php echo $tab=='settings'?'#1a4581':'#888'; ?>; border-bottom: 3px solid <?php echo $tab=='settings'?'#1a4581':'transparent'; ?>;">Impostazioni</a>
+                <a id="gcs_btn_requests" class="gcs-tab-btn" style="<?php echo $tabs_style; ?> color: #888; border-bottom: 3px solid transparent;" onclick="window.gcsShowTab('requests')">Bacheca Richieste</a>
+                <a id="gcs_btn_calendar" class="gcs-tab-btn" style="<?php echo $tabs_style; ?> color: #888; border-bottom: 3px solid transparent;" onclick="window.gcsShowTab('calendar')">Calendario</a>
+                <a id="gcs_btn_settings" class="gcs-tab-btn" style="<?php echo $tabs_style; ?> color: #888; border-bottom: 3px solid transparent;" onclick="window.gcsShowTab('settings')">Impostazioni</a>
             </div>
 
             <?php
@@ -158,11 +157,119 @@ class GCS_Reserved_Area_Shortcode {
                 if ($msg == 'deleted') echo '<div style="background:#fff3cd; color:#856404; padding:15px; border-radius:4px; margin-bottom:20px; font-weight:bold;">Richiesta eliminata.</div>';
                 if ($msg == 'settings_saved') echo '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; font-weight:bold;">Impostazioni salvate con successo.</div>';
             }
-
-            if ($tab == 'requests') echo self::render_requests_management();
-            elseif ($tab == 'calendar') echo self::render_calendar_management();
-            elseif ($tab == 'settings') echo self::render_settings_management();
             ?>
+
+            <div id="gcs_tab_requests" class="gcs-tab-content" style="display:none;">
+                <?php echo self::render_requests_management(); ?>
+            </div>
+            <div id="gcs_tab_calendar" class="gcs-tab-content" style="display:none;">
+                <?php echo self::render_calendar_management(); ?>
+            </div>
+            <div id="gcs_tab_settings" class="gcs-tab-content" style="display:none;">
+                <?php echo self::render_settings_management(); ?>
+            </div>
+
+            <script>
+                if (typeof window.gcsShowTab === 'undefined') {
+                    window.gcsShowTab = function(tabId) {
+                        document.querySelectorAll('.gcs-tab-content').forEach(function(el) { el.style.display = 'none'; });
+                        document.querySelectorAll('.gcs-tab-btn').forEach(function(btn) {
+                            btn.style.color = '#888';
+                            btn.style.borderBottomColor = 'transparent';
+                        });
+                        
+                        var tgtContent = document.getElementById('gcs_tab_' + tabId);
+                        if(tgtContent) tgtContent.style.display = 'block';
+                        
+                        var activeBtn = document.getElementById('gcs_btn_' + tabId);
+                        if(activeBtn) {
+                            activeBtn.style.color = '#1a4581';
+                            activeBtn.style.borderBottomColor = '#1a4581';
+                        }
+                    };
+
+                    document.addEventListener('DOMContentLoaded', function() {
+                        window.gcsShowTab('requests');
+                    });
+                    
+                    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                        setTimeout(function() { window.gcsShowTab('requests'); }, 50);
+                    }
+
+                    document.addEventListener('click', function(e) {
+                        var calNav = e.target.closest('.gcs-cal-nav');
+                        if (calNav) {
+                            e.preventDefault();
+                            var href = calNav.href;
+                            var container = document.getElementById('gcs_reserved_calendar_col');
+                            if(container) container.style.opacity = '0.5';
+                            
+                            var activeTabBtn = document.querySelector('.gcs-tab-btn[style*="border-bottom-color: rgb(26, 69, 129)"]') 
+                                            || document.querySelector('.gcs-tab-btn[style*="border-bottom-color: #1a4581"]');
+                            var activeTab = activeTabBtn ? activeTabBtn.id.replace('gcs_btn_', '') : 'calendar';
+
+                            fetch(href)
+                                .then(function(res) { return res.text(); })
+                                .then(function(html) {
+                                    var parser = new DOMParser();
+                                    var doc = parser.parseFromString(html, 'text/html');
+                                    var newWrapper = doc.querySelector('.gcs-reserved-wrapper');
+                                    var currentWrapper = document.querySelector('.gcs-reserved-wrapper');
+                                    if (newWrapper && currentWrapper) {
+                                        currentWrapper.innerHTML = newWrapper.innerHTML;
+                                        window.gcsShowTab(activeTab);
+                                    }
+                                });
+                        }
+                    });
+
+                    document.addEventListener('submit', function(e) {
+                        var form = e.target;
+                        if (form.closest('.gcs-reserved-wrapper') && !form.closest('.gcs-reserved-login')) {
+                            e.preventDefault();
+                            
+                            var submitBtn = e.submitter || form.querySelector('button[type="submit"]');
+                            var originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+                            if (submitBtn) {
+                                submitBtn.innerHTML = 'Attendere...';
+                                submitBtn.style.opacity = '0.7';
+                            }
+
+                            var formData = new FormData(form);
+                            if (e.submitter && e.submitter.name) {
+                                formData.append(e.submitter.name, e.submitter.value || '1');
+                            }
+
+                            var activeTabBtn = document.querySelector('.gcs-tab-btn[style*="border-bottom-color: rgb(26, 69, 129)"]') 
+                                            || document.querySelector('.gcs-tab-btn[style*="border-bottom-color: #1a4581"]');
+                            var activeTab = activeTabBtn ? activeTabBtn.id.replace('gcs_btn_', '') : 'requests';
+
+                            fetch(window.location.href, {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(function(res) { return res.text(); })
+                            .then(function(html) {
+                                var parser = new DOMParser();
+                                var doc = parser.parseFromString(html, 'text/html');
+                                var newWrapper = doc.querySelector('.gcs-reserved-wrapper');
+                                var currentWrapper = document.querySelector('.gcs-reserved-wrapper');
+                                if (newWrapper && currentWrapper) {
+                                    currentWrapper.innerHTML = newWrapper.innerHTML;
+                                    window.gcsShowTab(activeTab);
+                                }
+                            })
+                            .catch(function(err) {
+                                console.error(err);
+                                if (submitBtn) {
+                                    submitBtn.innerHTML = originalBtnText;
+                                    submitBtn.style.opacity = '1';
+                                }
+                            });
+                        }
+                    });
+                }
+            </script>
         </div>
         <?php
         return ob_get_clean();
@@ -386,7 +493,7 @@ class GCS_Reserved_Area_Shortcode {
 
             <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start;">
                 <!-- Colonna Calendario -->
-                <div style="flex:1 1 60%; background:#fff; border:1px solid #eaeaea; padding:25px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,.05); min-width: 300px;">
+                <div id="gcs_reserved_calendar_col" style="flex:1 1 60%; background:#fff; border:1px solid #eaeaea; padding:25px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,.05); min-width: 300px; transition: opacity 0.3s;">
                     <?php
                     $pm = ($month == 1) ? 12 : $month - 1; $py = ($month == 1) ? $year - 1 : $year;
                     $nm = ($month == 12) ? 1 : $month + 1; $ny = ($month == 12) ? $year + 1 : $year;
@@ -395,9 +502,9 @@ class GCS_Reserved_Area_Shortcode {
                     $next_url = add_query_arg(array('c_month' => $nm, 'c_year' => $ny));
                     ?>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
-                        <a href="<?php echo esc_url($prev_url); ?>" style="padding: 8px 15px; background: #f0f0f1; border: 1px solid #ccc; border-radius: 4px; color: #3c434a; text-decoration: none; font-weight: bold;">&laquo; <?php echo $months_names[$pm]; ?></a>
+                        <a href="<?php echo esc_url($prev_url); ?>" class="gcs-cal-nav" style="padding: 8px 15px; background: #f0f0f1; border: 1px solid #ccc; border-radius: 4px; color: #3c434a; text-decoration: none; font-weight: bold;">&laquo; <?php echo $months_names[$pm]; ?></a>
                         <h3 style="margin:0; font-weight:700; font-size: 22px; color: #333; text-transform: uppercase;"><?php echo $months_names[$month].' '.$year; ?></h3>
-                        <a href="<?php echo esc_url($next_url); ?>" style="padding: 8px 15px; background: #f0f0f1; border: 1px solid #ccc; border-radius: 4px; color: #3c434a; text-decoration: none; font-weight: bold;"><?php echo $months_names[$nm]; ?> &raquo;</a>
+                        <a href="<?php echo esc_url($next_url); ?>" class="gcs-cal-nav" style="padding: 8px 15px; background: #f0f0f1; border: 1px solid #ccc; border-radius: 4px; color: #3c434a; text-decoration: none; font-weight: bold;"><?php echo $months_names[$nm]; ?> &raquo;</a>
                     </div>
                     
                     <div style="overflow-x: auto;">
