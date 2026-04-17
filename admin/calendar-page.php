@@ -164,8 +164,13 @@ class GCS_Calendar_Page {
                 <div style="display:flex; justify-content:space-between; margin-top:20px;">
                     <button type="button" onclick="document.getElementById('gcsEditModal').style.display='none'" class="button">Annulla</button>
                     <div>
-                        <button type="submit" class="button button-link-delete" style="color:#d63638;" onclick="if(confirm('Eliminare definitivamente?')){ document.getElementById('gcs_admin_event_op').value='delete'; return true; } return false;">Elimina</button>
-                        <button type="submit" class="button button-primary" onclick="document.getElementById('gcs_admin_event_op').value='save';">Salva</button>
+                        <div id="gcs_admin_delete_confirm" style="display:none; background:#fff1f0; border:1px solid #ffa39e; padding:10px; border-radius:6px; margin-bottom:10px; text-align:center;">
+                            <p style="margin:0 0 10px; color:#d63638; font-weight:bold;">Sei sicuro?</p>
+                            <button type="submit" class="button" style="background:#d63638; color:#fff; border:none;" onclick="document.getElementById('gcs_admin_event_op').value='delete';">Si, elimina</button>
+                            <button type="button" class="button" onclick="document.getElementById('gcs_admin_delete_confirm').style.display='none';">No</button>
+                        </div>
+                        <button type="button" class="button button-link-delete" style="color:#d63638;" id="gcs_admin_delete_trigger" onclick="document.getElementById('gcs_admin_delete_confirm').style.display='block'; this.style.display='none';">Elimina</button>
+                        <button type="submit" class="button button-primary" onclick="console.log('Admin: Saving event...'); document.getElementById('gcs_admin_event_op').value='save';">Salva</button>
                     </div>
                 </div>
             </form>
@@ -177,6 +182,9 @@ class GCS_Calendar_Page {
                 document.getElementById('edit_start').value = start;
                 document.getElementById('edit_end').value = end;
                 document.getElementById('edit_message').value = msg;
+                document.getElementById('gcs_admin_event_op').value = 'save';
+                document.getElementById('gcs_admin_delete_confirm').style.display = 'none';
+                document.getElementById('gcs_admin_delete_trigger').style.display = 'inline-block';
                 document.getElementById('gcsEditModal').style.display = 'flex';
             }
             window.addEventListener('click', function(event) { 

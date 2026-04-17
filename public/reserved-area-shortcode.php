@@ -289,11 +289,15 @@ class GCS_Reserved_Area_Shortcode {
                             var activeTab = activeTabBtn ? activeTabBtn.id.replace('gcs_btn_', '') : 'requests';
 
                             var fetchUrl = window.location.href + (window.location.href.indexOf('?') > -1 ? '&' : '?') + 'gcs_t=' + Date.now();
+                            console.log('PJAX: Submitting form to ' + fetchUrl);
                             fetch(fetchUrl, {
                                 method: 'POST',
                                 body: formData
                             })
-                            .then(function(res) { return res.text(); })
+                            .then(function(res) { 
+                                console.log('PJAX: Response received, status: ' + res.status);
+                                return res.text(); 
+                            })
                             .then(function(html) {
                                 var parser = new DOMParser();
                                 var doc = parser.parseFromString(html, 'text/html');
@@ -301,7 +305,10 @@ class GCS_Reserved_Area_Shortcode {
                                 var currentWrapper = document.querySelector('.gcs-reserved-wrapper');
                                 if (newWrapper && currentWrapper) {
                                     currentWrapper.innerHTML = newWrapper.innerHTML;
+                                    console.log('PJAX: Content updated, showing tab: ' + activeTab);
                                     window.gcsShowTab(activeTab);
+                                } else {
+                                    console.error('PJAX: Error - New wrapper not found in response');
                                 }
                             })
                             .catch(function(err) {
@@ -685,9 +692,16 @@ class GCS_Reserved_Area_Shortcode {
                         
                         <div style="display:flex; justify-content:space-between; align-items: center; border-top: 1px solid #f0f0f0; padding-top: 20px;">
                             <button type="button" onclick="document.getElementById('gcsFrontEditModal').style.display='none'" style="background: transparent; border: 1px solid #bbb; padding: 10px 15px; border-radius: 4px; cursor: pointer; color: #555; font-weight: bold; transition: background 0.3s;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='transparent'">Annulla</button>
-                             <div style="display: flex; gap: 10px;">
-                                <button type="submit" style="background: white; border: 1px solid #e74c3c; color: #e74c3c; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s;" onmouseover="this.style.background='#e74c3c'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='#e74c3c';" onclick="if(confirm('Eliminare definitivamente questo evento?')){ document.getElementById('gcs_front_event_op').value='delete'; return true; } return false;">Elimina</button>
-                                <button type="submit" style="background: #1a4581; color: white; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s;" onmouseover="this.style.background='#133463'" onmouseout="this.style.background='#1a4581'" onclick="document.getElementById('gcs_front_event_op').value='save';">Salva Modifiche</button>
+                             <div style="display: flex; gap: 10px; flex-direction: column; align-items: flex-end;">
+                                <div id="gcs_front_delete_confirm" style="display:none; background:#fff1f0; border:1px solid #ffa39e; padding:8px; border-radius:4px; text-align:center; margin-bottom:5px;">
+                                    <p style="margin:0 0 5px; color:#e74c3c; font-size:12px; font-weight:bold;">Eliminare?</p>
+                                    <button type="submit" style="background:#e74c3c; color:#fff; border:none; padding:4px 10px; border-radius:3px; cursor:pointer;" onclick="document.getElementById('gcs_front_event_op').value='delete';">Si</button>
+                                    <button type="button" style="background:#bbb; color:#fff; border:none; padding:4px 10px; border-radius:3px; cursor:pointer;" onclick="document.getElementById('gcs_front_delete_confirm').style.display='none'; document.getElementById('gcs_front_delete_trigger').style.display='block';">No</button>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    <button type="button" id="gcs_front_delete_trigger" style="background: white; border: 1px solid #e74c3c; color: #e74c3c; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s;" onmouseover="this.style.background='#e74c3c'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='#e74c3c';" onclick="this.style.display='none'; document.getElementById('gcs_front_delete_confirm').style.display='block';">Elimina</button>
+                                    <button type="submit" style="background: #1a4581; color: white; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s;" onmouseover="this.style.background='#133463'" onmouseout="this.style.background='#1a4581'" onclick="console.log('Frontend: Saving...'); document.getElementById('gcs_front_event_op').value='save';">Salva Modifiche</button>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -702,6 +716,8 @@ class GCS_Reserved_Area_Shortcode {
                     document.getElementById('front_edit_end').value = end;
                     document.getElementById('front_edit_message').value = msg;
                     document.getElementById('gcs_front_event_op').value = 'save';
+                    document.getElementById('gcs_front_delete_confirm').style.display = 'none';
+                    document.getElementById('gcs_front_delete_trigger').style.display = 'block';
                     document.getElementById('gcsFrontEditModal').style.display = 'flex';
                 }
                 
