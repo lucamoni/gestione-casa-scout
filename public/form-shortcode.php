@@ -37,152 +37,104 @@ class GCS_Form_Shortcode {
             $custom_css = get_option('gcs_custom_css', '');
         ?>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Martel:wght@400;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
             
-            /* --- RESET AGGRESSIVO ANTI-TEMA E ANTI-WPBAKERY --- */
-            .gcs-form-container, .gcs-booking-form, .gcs-form-row, .gcs-form-flex, .gcs-booking-form label {
-                background-image: none !important;
-                border-bottom: none !important;
-                border-top: none !important;
-                border-right: none !important;
-                border-left: none !important;
-                box-shadow: none !important;
-                outline: none !important;
-            }
-            .gcs-form-container::before, .gcs-form-container::after,
-            .gcs-form-row::before, .gcs-form-row::after,
-            .gcs-booking-form::before, .gcs-booking-form::after,
-            .gcs-form-flex::before, .gcs-form-flex::after {
-                display: none !important;
-                content: none !important;
-                background: transparent !important;
-                border: none !important;
-            }
-            .gcs-form-container p {
-                border: none !important;
-                background: transparent !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                box-shadow: none !important;
-            }
-            /* ------------------------------------------------ */
-
             .gcs-form-container {
                 width: 100%;
                 max-width: 650px;
-                margin: 30px auto;
+                margin: 40px auto;
                 background: #ffffff !important;
-                padding: 30px !important;
-                box-shadow: 0 15px 35px rgba(0,0,0,0.05) !important;
-                border: 1px solid #eaeaea !important;
-                border-radius: 16px !important;
-                font-family: inherit;
+                padding: 40px !important;
+                box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1) !important;
+                border: 1px solid #f1f5f9 !important;
+                border-radius: 20px !important;
+                font-family: 'Inter', -apple-system, sans-serif;
                 position: relative;
                 z-index: 10;
             }
+
             .gcs-form-container h3 {
                 margin-top: 0;
-                margin-bottom: <?php echo $l_gap; ?>;
+                margin-bottom: 25px;
                 color: <?php echo $t_color; ?>;
-                font-family: 'Martel', serif;
-                font-weight: 700;
+                font-weight: 800;
                 font-size: <?php echo $t_size; ?>;
                 text-align: <?php echo $l_align; ?>;
+                letter-spacing: -0.02em;
             }
+
             .gcs-booking-form label {
                 display: block;
-                margin-bottom: 2px;
-                font-weight: 600;
-                color: <?php echo $l_color; ?>;
-                font-size: 13px;
-                padding-left: 2px;
+                margin-bottom: 6px;
+                font-weight: 700;
+                color: #475569;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
             }
+
             .gcs-booking-form input[type="text"],
             .gcs-booking-form input[type="email"],
             .gcs-booking-form input[type="date"],
             .gcs-booking-form input[type="number"],
             .gcs-booking-form textarea {
                 width: 100%;
-                padding: 8px 12px;
-                border: 1px solid <?php echo $i_border; ?>;
-                background-color: <?php echo $i_bg; ?> !important;
-                background-image: none !important;
-                font-size: 14px;
-                color: #333333;
-                border-radius: <?php echo $i_radius; ?>;
-                transition: all 0.3s ease;
+                padding: 12px 16px;
+                border: 2px solid #f1f5f9;
+                background-color: #f8fafc !important;
+                font-size: 15px;
+                font-weight: 500;
+                color: #1e293b;
+                border-radius: 12px;
+                transition: all 0.2s;
                 box-sizing: border-box;
                 box-shadow: none !important;
             }
-            .gcs-booking-form textarea {
-                border-radius: <?php echo $i_radius; ?>;
-                resize: vertical;
-            }
+
             .gcs-booking-form input:focus,
             .gcs-booking-form textarea:focus {
                 border-color: <?php echo $b_bg; ?>;
-                background-color: <?php echo $i_bg; ?>;
+                background-color: #ffffff !important;
                 outline: none;
-                box-shadow: 0 0 0 3px <?php echo $b_hover; ?>;
+                box-shadow: 0 0 0 4px <?php echo $b_hover; ?>22 !important;
+                transform: translateY(-1px);
             }
-            .gcs-form-row {
-                margin-bottom: <?php echo $l_gap; ?>;
-                background: transparent !important;
-                border: none !important;
-            }
-            .gcs-form-flex {
-                display: flex;
-                flex-wrap: wrap;
-                gap: <?php echo $l_gap; ?>;
-                margin-bottom: <?php echo $l_gap; ?>;
-                background: transparent !important;
-                border: none !important;
-            }
-            .gcs-form-flex > div {
-                flex: 1 1 calc(50% - 15px);
-            }
+
+            .gcs-form-row { margin-bottom: 20px; }
+            .gcs-form-flex { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; }
+            .gcs-form-flex > div { flex: 1 1 calc(50% - 10px); }
+
             .gcs-btn-submit {
-                <?php if ($l_btn_align == 'stretch'): ?>
-                display: block !important;
-                width: 100% !important;
-                margin: <?php echo $l_gap; ?> 0 0 0 !important;
-                <?php else: ?>
-                display: inline-block !important;
-                width: auto !important;
-                min-width: 150px !important;
-                margin: <?php echo $l_gap; ?> 0 0 0 !important;
-                <?php endif; ?>
-                padding: 10px 20px !important;
+                width: <?php echo ($l_btn_align == 'stretch') ? '100%' : 'auto'; ?>;
+                padding: 14px 30px !important;
                 background: <?php echo $b_bg; ?> !important;
                 color: <?php echo $b_color; ?> !important;
-                font-size: 14px !important;
-                font-weight: 700 !important;
+                font-size: 15px !important;
+                font-weight: 800 !important;
                 text-transform: uppercase !important;
-                letter-spacing: 0.5px !important;
+                letter-spacing: 0.1em !important;
                 border: none !important;
-                border-radius: <?php echo $b_radius; ?> !important;
+                border-radius: 12px !important;
                 cursor: pointer;
-                transition: transform 0.2s ease, background 0.3s ease !important;
-                box-shadow: none !important;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                box-shadow: 0 10px 15px -3px <?php echo $b_bg; ?>44 !important;
             }
+
             .gcs-btn-submit:hover {
                 background: <?php echo $b_hover; ?> !important;
-                color: <?php echo $b_color; ?> !important;
+                box-shadow: 0 20px 25px -5px <?php echo $b_bg; ?>66 !important;
                 transform: translateY(-2px);
             }
             
-            /* CSS Personalizzato Avanzato */
-            <?php echo $custom_css; ?>
-            
             .gcs-success-message {
-                background: rgba(161, 209, 208, 0.2);
-                color: #1a4581;
-                padding: 15px 20px;
+                background: #f0fdf4;
+                color: #166534;
+                padding: 20px;
                 border-radius: 12px;
-                margin-bottom: 25px;
-                font-weight: 600;
+                margin-bottom: 30px;
+                font-weight: 700;
                 text-align: center;
-                border: 1px solid rgba(161, 209, 208, 0.4);
+                border: 1px solid #dcfce7;
             }
         </style>
 

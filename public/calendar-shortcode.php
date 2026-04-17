@@ -24,135 +24,141 @@ class GCS_Calendar_Shortcode {
         ?>
         <div class="gcs-calendar-wrapper" id="gcs-calendar-ajax-wrapper" style="position:relative;">
             <style>
-                .gcs-pub-calendar {
-                    width: 100%;
-                    max-width: 800px;
-                    margin: 0 auto 30px;
-                    font-family: inherit;
+                :root {
+                    --gcs-primary: #2d5a27;
+                    --gcs-primary-dark: #1b3a18;
+                    --gcs-accent: #d4a373;
+                    --gcs-bg: #f8fafc;
+                    --gcs-card: #ffffff;
+                    --gcs-text: #1e293b;
+                    --gcs-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
                 }
+
+                .gcs-calendar-container {
+                    font-family: 'Inter', -apple-system, sans-serif;
+                    background: var(--gcs-card);
+                    border-radius: 16px;
+                    box-shadow: var(--gcs-shadow);
+                    overflow: hidden;
+                    border: 1px solid #e2e8f0;
+                }
+
                 .gcs-pub-cal-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 20px;
-                    background: #1a4581;
-                    color: #ffffff;
-                    padding: 15px 20px;
-                    border-radius: 4px;
+                    background: var(--gcs-primary);
+                    color: #fff;
+                    padding: 20px 25px;
                 }
-                .gcs-pub-cal-header a {
-                    color: #a1d1d0;
-                    text-decoration: none;
-                    font-weight: bold;
-                    font-size: 14px;
-                    text-transform: uppercase;
-                    cursor: pointer;
-                    transition: color 0.3s ease;
-                }
-                .gcs-pub-cal-header a:hover {
-                    color: #ffffff;
-                }
+
                 .gcs-pub-cal-header h3 {
                     margin: 0;
-                    color: #ffffff;
-                    font-family: 'Martel', serif;
+                    color: #fff;
                     font-size: 22px;
+                    font-weight: 800;
+                    letter-spacing: -0.02em;
                 }
+
+                .gcs-ajax-cal-nav {
+                    background: rgba(255,255,255,0.15);
+                    color: #fff !important;
+                    text-decoration: none !important;
+                    padding: 8px 15px;
+                    border-radius: 10px;
+                    font-size: 13px;
+                    font-weight: 700;
+                    transition: all 0.2s;
+                    cursor: pointer;
+                    backdrop-filter: blur(5px);
+                }
+
+                .gcs-ajax-cal-nav:hover {
+                    background: rgba(255,255,255,0.25);
+                    transform: translateY(-1px);
+                }
+
                 .gcs-pub-cal-table {
                     width: 100%;
                     border-collapse: collapse;
-                    background: transparent !important;
+                    table-layout: fixed;
                 }
-                .gcs-pub-cal-table th, .gcs-pub-cal-table td {
-                    border: 1px solid #f0f0f0;
-                    text-align: center;
+
+                .gcs-pub-cal-table th {
+                    background: #f8fafc;
+                    padding: 12px;
+                    font-size: 11px;
+                    font-weight: 800;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+
+                .gcs-pub-cal-table td {
+                    height: 110px;
                     vertical-align: top;
                     padding: 8px;
-                    background-color: transparent !important;
-                    background-image: none !important;
+                    border: 1px solid #f1f5f9;
+                    position: relative;
                 }
-                .gcs-pub-cal-table th {
-                    padding: 10px;
-                    background: #f4f4f4 !important;
-                    color: #333;
-                    border: 1px solid #eaeaea;
-                    text-align: center;
-                    font-size: 13px;
-                    text-transform: uppercase;
-                }
-                .gcs-pub-cal-table td {
-                    border: 1px solid #eaeaea;
-                    padding: 5px;
-                    height: 90px;
-                    vertical-align: top;
-                    width: 14.28%;
-                }
+
                 .gcs-pub-cal-day-num {
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    font-weight: bold;
-                    margin-bottom: 5px;
-                    color: #555;
-                    height: 28px;
-                }
-                .gcs-pub-cal-day-num-inner {
-                    display: inline-flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 24px;
-                    min-width: 24px;
-                }
-                .gcs-pub-cal-today {
-                    background: #fdfdfd;
-                }
-                .gcs-pub-cal-today .gcs-pub-cal-day-num-inner {
-                    background: #1a4581;
-                    color: white;
-                    border-radius: 50%;
-                }
-                .gcs-pub-cal-event {
-                    background: #a1d1d0;
-                    color: #1a4581;
-                    padding: 6px 10px;
-                    font-size: 11px;
-                    border-radius: 6px;
-                    margin: 4px 0;
-                    line-height: 1;
+                    margin-bottom: 8px;
                     font-weight: 700;
+                    color: #94a3b8;
+                    font-size: 13px;
+                }
+
+                .gcs-pub-cal-today {
+                    background: #f0fdf4;
+                }
+
+                .gcs-pub-cal-today .gcs-pub-cal-day-num-inner {
+                    background: var(--gcs-primary);
+                    color: #fff;
+                    padding: 2px 6px;
+                    border-radius: 6px;
+                }
+
+                .gcs-pub-cal-event {
+                    background: #3498db;
+                    color: #fff;
+                    padding: 4px 8px;
+                    font-size: 10px;
+                    font-weight: 700;
+                    border-radius: 6px;
+                    margin-bottom: 3px;
+                    white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    white-space: nowrap;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-                    width: 100%;
-                    box-sizing: border-box;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
                     position: relative;
                     z-index: 1;
-                    height: 24px;
+                    width: calc(100% + 1px);
                 }
+
                 .gcs-pub-cal-event.cont-prev {
                     border-top-left-radius: 0;
                     border-bottom-left-radius: 0;
-                    margin-left: -5px;
-                    width: calc(100% + 5px);
-                    padding-left: 0;
+                    margin-left: -9px;
+                    width: calc(100% + 10px);
                 }
+
                 .gcs-pub-cal-event.cont-next {
                     border-top-right-radius: 0;
                     border-bottom-right-radius: 0;
-                    margin-right: -5px;
-                    width: calc(100% + 5px);
-                    padding-right: 0;
-                }
-                .gcs-pub-cal-event.cont-prev.cont-next {
+                    margin-right: -9px;
                     width: calc(100% + 10px);
                 }
+
                 .gcs-pub-cal-event.event-hidden-text {
                     color: transparent;
                 }
-                #gcs-calendar-inner {
-                    transition: opacity 0.3s ease;
-                }
+
+                #gcs-calendar-ajax-wrapper { min-height: 400px; }
             </style>
             
             <div class="gcs-calendar-container" style="max-width: 800px; margin: 30px auto; font-family: inherit; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; z-index: 10;">
