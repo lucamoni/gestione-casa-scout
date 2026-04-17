@@ -137,8 +137,7 @@ class GCS_Reserved_Area_Shortcode {
         
         $message_html = '';
 
-        // GESTIONE AZIONI CALENDARIO
-        if (isset($_POST['gcs_edit_event_action'])) {
+        if (isset($_POST['gcs_edit_event_action']) && wp_verify_nonce($_POST['gcs_edit_nonce'], 'edit_event_action')) {
             global $wpdb;
             $table_name = $wpdb->prefix . 'gcs_requests';
             $edit_id = isset($_POST['edit_id']) ? intval($_POST['edit_id']) : 0;
@@ -160,7 +159,7 @@ class GCS_Reserved_Area_Shortcode {
             }
         }
 
-        if (isset($_POST['gcs_add_manual_event'])) {
+        if (isset($_POST['gcs_front_add_manual']) && wp_verify_nonce($_POST['gcs_nonce'], 'add_manual_event')) {
             global $wpdb;
             $table_name = $wpdb->prefix . 'gcs_requests';
             $wpdb->insert($table_name, array(
@@ -600,7 +599,7 @@ class GCS_Reserved_Area_Shortcode {
                     <h3 style="margin-top:0; color: #333; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">Aggiungi Impegno Rapido</h3>
                     <form method="POST">
                         <?php wp_nonce_field('add_manual_event', 'gcs_nonce'); ?>
-                        <input type="hidden" name="gcs_add_manual_event" value="1">
+                        <input type="hidden" name="gcs_front_add_manual" value="1">
                         <p style="margin-bottom: 15px;">
                             <label style="display:block; margin-bottom:5px; font-weight:bold; color:#555;">Titolo</label>
                             <input type="text" name="event_title" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px;">

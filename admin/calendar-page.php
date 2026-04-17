@@ -12,7 +12,7 @@ class GCS_Calendar_Page {
 
         $message = '';
         // GESTIONE AZIONI (POST)
-        if (isset($_POST['gcs_add_manual_event'])) {
+        if (isset($_POST['gcs_admin_add_manual']) && wp_verify_nonce($_POST['gcs_nonce'], 'add_manual_event')) {
             $title = sanitize_text_field($_POST['event_title']);
             $start = sanitize_text_field($_POST['event_start']);
             $end = sanitize_text_field($_POST['event_end']);
@@ -30,7 +30,7 @@ class GCS_Calendar_Page {
             }
         }
 
-        if (isset($_POST['gcs_edit_event_action'])) {
+        if (isset($_POST['gcs_edit_event_action']) && wp_verify_nonce($_POST['gcs_edit_nonce'], 'edit_event_action')) {
             $edit_id = isset($_POST['edit_id']) ? intval($_POST['edit_id']) : 0;
             $op = isset($_POST['gcs_event_op']) ? sanitize_text_field($_POST['gcs_event_op']) : 'save';
 
@@ -120,7 +120,7 @@ class GCS_Calendar_Page {
         echo '<h3 style="margin-top:0;">Aggiungi Impegno Rapido</h3>';
         echo '<form method="POST">';
         wp_nonce_field('add_manual_event', 'gcs_nonce');
-        echo '<input type="hidden" name="gcs_add_manual_event" value="1">';
+        echo '<input type="hidden" name="gcs_admin_add_manual" value="1">';
         echo '<p><label>Titolo</label><input type="text" name="event_title" required class="large-text"></p>';
         echo '<p><label>Inizio</label><input type="date" name="event_start" required class="large-text"></p>';
         echo '<p><label>Fine</label><input type="date" name="event_end" required class="large-text"></p>';
