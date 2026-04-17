@@ -25,13 +25,17 @@ require_once plugin_dir_path( __FILE__ ) . 'admin/calendar-page.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/plugin-update-checker/plugin-update-checker.php';
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
-$myUpdateChecker = PucFactory::buildUpdateChecker(
-	'https://raw.githubusercontent.com/lucamoni/gestione-casa-scout/main/info.json',
-	__FILE__,
-	'gcs-final-slug-152' // Slug mai usato per resettare tutto
-);
+/*
+// Forza i parametri GitHub direttamente sull'oggetto API
+$api = $myUpdateChecker->getVcsApi();
+if ($api instanceof \YahnisElsts\PluginUpdateChecker\v5\Vcs\GitHubApi) {
+    $api->user = 'lucamoni';
+    $api->repo = 'gestione-casa-scout';
+}
+$myUpdateChecker->setBranch('main');
+*/
 
-// Forza la pulizia di ogni possibile rimasuglio di errore
+// Forza la pulizia della cache ad ogni caricamento admin per questa sessione di debug
 add_action('admin_init', function() {
     delete_site_transient('update_plugins');
     $transients = array(
@@ -41,6 +45,17 @@ add_action('admin_init', function() {
     );
     foreach($transients as $t) delete_transient($t);
 });
+
+/*
+// Intercetta la richiesta HTTP e correggi l'URL se contiene ancora i segnaposto
+add_filter('pre_http_request', function($pre, $args, $url) {
+    if (strpos($url, 'api.github.com') !== false && strpos($url, ':user') !== false) {
+        $url = str_replace(':user/:repo', 'lucamoni/gestione-casa-scout', $url);
+        return wp_remote_request($url, $url_args);
+    }
+    return $pre;
+}, 20, 3);
+*/
 
 // Hook di attivazione per creare la tabella nel database al momento dell'installazione
 register_activation_hook( __FILE__, array( 'GCS_DB_Manager', 'create_table' ) );
