@@ -32,18 +32,21 @@ class GCS_Calendar_Page {
 
         if (isset($_POST['gcs_edit_event_action']) && wp_verify_nonce($_POST['gcs_edit_nonce'], 'edit_event_action')) {
             $edit_id = intval($_POST['edit_id']);
-            
-            if (!empty($_POST['gcs_delete_event_action'])) {
-                $wpdb->delete($table_name, array('id' => $edit_id), array('%d'));
-                $message = '<div class="notice notice-success is-dismissible"><p>Evento eliminato con successo dal calendario.</p></div>';
-            } else {
-                GCS_DB_Manager::update_request($edit_id, array(
-                    'group_name' => sanitize_text_field($_POST['edit_title']),
-                    'start_date' => sanitize_text_field($_POST['edit_start']),
-                    'end_date' => sanitize_text_field($_POST['edit_end']),
-                    'message' => sanitize_textarea_field($_POST['edit_message'])
-                ));
-                $message = '<div class="notice notice-success is-dismissible"><p>Evento aggiornato con successo.</p></div>';
+            $op = isset($_POST['gcs_event_op']) ? sanitize_text_field($_POST['gcs_event_op']) : 'save';
+
+            if ($edit_id > 0) {
+                if ($op === 'delete') {
+                    $result = $wpdb->delete($table_name, array('id' => $edit_id), array('%d'));
+                    $message = $result ? '<div class="notice notice-success is-dismissible"><p>Evento eliminato con successo.</p></div>' : '<div class="notice notice-error is-dismissible"><p>Errore durante l\'eliminazione dell\'evento.</p></div>';
+                } else {
+                    GCS_DB_Manager::update_request($edit_id, array(
+                        'group_name' => sanitize_text_field($_POST['edit_title']),
+                        'start_date' => sanitize_text_field($_POST['edit_start']),
+                        'end_date' => sanitize_text_field($_POST['edit_end']),
+                        'message' => sanitize_textarea_field($_POST['edit_message'])
+                    ));
+                    $message = '<div class="notice notice-success is-dismissible"><p>Evento aggiornato con successo.</p></div>';
+                }
             }
         }
 
@@ -145,7 +148,7 @@ class GCS_Calendar_Page {
                 <?php wp_nonce_field('edit_event_action', 'gcs_edit_nonce'); ?>
                 <input type="hidden" name="gcs_edit_event_action" value="1">
                 <input type="hidden" name="edit_id" id="edit_id">
-                <input type="hidden" name="gcs_delete_event_action" id="gcs_admin_delete_flag" value="">
+                <input type="hidden" name="gcs_event_op" id="gcs_admin_event_op" value="save">
                 <p><label>Titolo</label><br/><input type="text" name="edit_title" id="edit_title" required class="large-text"></p>
                 <div style="display:flex; gap:10px;">
                     <p style="flex:1;"><label>Inizio</label><br/><input type="date" name="edit_start" id="edit_start" required class="large-text"></p>
@@ -155,8 +158,8 @@ class GCS_Calendar_Page {
                 <div style="display:flex; justify-content:space-between; margin-top:20px;">
                     <button type="button" onclick="document.getElementById('gcsEditModal').style.display='none'" class="button">Annulla</button>
                     <div>
-                        <button type="submit" class="button button-link-delete" style="color:#d63638;" onclick="if(confirm('Rimuovere definitivamente?')){ document.getElementById('gcs_admin_delete_flag').value='1'; return true; } return false;">Elimina</button>
-                        <button type="submit" class="button button-primary">Salva</button>
+                        <button type="submit" class="button button-link-delete" style="color:#d63638;" onclick="if(confirm('Eliminare definitivamente?')){ document.getElementById('gcs_admin_event_op').value='delete'; return true; } return false;">Elimina</button>
+                        <button type="submit" class="button button-primary" onclick="document.getElementById('gcs_admin_event_op').value='save';">Salva</button>
                     </div>
                 </div>
             </form>
