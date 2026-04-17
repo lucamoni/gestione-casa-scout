@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Gestione Casa Scout
  * Description: Sistema cucito su misura per la casa scout: form contatti con salvataggio nel database, Dashboard Admin per la gestione e calendario richieste. Utilizzare [gcs_booking_form] per il modulo e [gcs_calendar] per il calendario.
- * Version: 1.4.8
+ * Version: 1.4.9
  * Author: Luca Moni
  * Text Domain: gestione-casa-scout
  */
@@ -23,20 +23,29 @@ require_once plugin_dir_path( __FILE__ ) . 'admin/calendar-page.php';
 
 // Plugin Update Checker - Abilita gli aggiornamenti automatici da GitHub
 require_once plugin_dir_path( __FILE__ ) . 'includes/plugin-update-checker/plugin-update-checker.php';
-use YahnisElsts\PluginUpdateChecker\v5\Vcs\PluginUpdateChecker;
-use YahnisElsts\PluginUpdateChecker\v5\Vcs\GitHubApi;
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
-// Inizializzazione manuale e forzata per risolvere l'errore :user/:repo
-$myUpdateChecker = new PluginUpdateChecker(
-    new GitHubApi('https://github.com/lucamoni/gestione-casa-scout', null),
-    __FILE__,
-    'gestione-casa-scout'
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+	'https://github.com/lucamoni/gestione-casa-scout',
+	__FILE__,
+	'gestione-casa-scout'
 );
 
-// Forza manualmente i parametri se il parser fallisce
-$myUpdateChecker->getVcsApi()->user = 'lucamoni';
-$myUpdateChecker->getVcsApi()->repo = 'gestione-casa-scout';
-$myUpdateChecker->getVcsApi()->setBranch('main');
+// Forza i parametri GitHub tramite filtro se il riconoscimento automatico fallisce
+add_filter('puc_request_info_query_args-gestione-casa-scout', function($args) {
+    return $args;
+});
+
+// Intercetta e riscrive l'URL della richiesta se contiene ancora i segnaposto
+add_filter('pre_http_request', function($pre, $args, $url) {
+    if (strpos($url, ':user/:repo') !== false && strpos($url, 'api.github.com') !== false) {
+        $url = str_replace(':user/:repo', 'lucamoni/gestione-casa-scout', $url);
+        return wp_remote_request($url, $args);
+    }
+    return $pre;
+}, 10, 3);
+
+$myUpdateChecker->setBranch('main');
 
 // Inizializzazione di tutti i componenti alla corretta action di WordPress
 add_action( 'plugins_loaded', 'gcs_init_plugin' );
