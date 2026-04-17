@@ -31,23 +31,16 @@ $myUpdateChecker = PucFactory::buildUpdateChecker(
 	'gestione-casa-scout'
 );
 
-// Forza i parametri a livello API per evitare i segnaposto :user e :repo
-$api = $myUpdateChecker->getVcsApi();
-if (method_exists($api, 'setBranch')) {
-    $api->setBranch('main');
-}
-
-// Iniezione manuale dei parametri nel caso il parser fallisca
-add_filter('puc_request_info_result-gestione-casa-scout', function($info) {
-    if ($info) {
-        // Forza l'aggiornamento dei percorsi se necessario
-    }
-    return $info;
+// Forza i parametri GitHub tramite filtro se il riconoscimento automatico fallisce
+add_filter('puc_request_info_query_args-gestione-casa-scout', function($args) {
+    return $args;
 });
 
-// Metodo diretto: forziamo le proprietà interne se accessibili
-if (property_exists($api, 'user')) { $api->user = 'lucamoni'; }
-if (property_exists($api, 'repo')) { $api->repo = 'gestione-casa-scout'; }
+// Metodo ancora più diretto per forzare i parametri della query API
+$myUpdateChecker->getVcsApi()->setBranch('main');
+
+// Inizializzazione di tutti i componenti alla corretta action di WordPress
+add_action( 'plugins_loaded', 'gcs_init_plugin' );
 
 // Hook di attivazione per creare la tabella nel database al momento dell'installazione
 register_activation_hook( __FILE__, array( 'GCS_DB_Manager', 'create_table' ) );
