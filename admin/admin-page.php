@@ -55,16 +55,16 @@ class GCS_Admin_Page {
     }
 
     public static function handle_admin_posts() {
-        if (!isset($_POST['gcs_admin_action'])) return;
+        if (!isset($_REQUEST['gcs_admin_action'])) return;
         if (!current_user_can('manage_options')) return;
 
         // Verifica un nonce globale per la pagina admin
-        if (!isset($_POST['gcs_admin_nonce']) || !wp_verify_nonce($_POST['gcs_admin_nonce'], 'gcs_admin_dashboard_action')) {
-            wp_die('Errore di sicurezza: Nonce non valido.');
+        if (!isset($_REQUEST['gcs_admin_nonce']) || !wp_verify_nonce($_REQUEST['gcs_admin_nonce'], 'gcs_admin_dashboard_action')) {
+            wp_die('Errore di sicurezza: Nonce non valido. Ricarica la pagina.');
         }
 
-        $action = $_POST['gcs_admin_action'];
-        $request_id = intval($_POST['request_id'] ?? 0);
+        $action = $_REQUEST['gcs_admin_action'];
+        $request_id = intval($_REQUEST['request_id'] ?? 0);
         
         if ($action === 'gcs_update_status') {
             $new_status = sanitize_text_field($_POST['new_status'] ?? 'pending');
@@ -96,8 +96,10 @@ class GCS_Admin_Page {
     public static function render_admin_dashboard() {
         global $wpdb;
         $table = $wpdb->prefix . 'gcs_requests';
+        $cur_month = date('n');
+        $cur_year = date('Y');
         $pending = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE status = 'pending' AND contact_email != 'manuale@calendario.local'");
-        $confirmed_month = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE status = 'confirmed' AND month(start_date) = %d AND status != 'trash'", date('n')));
+        $confirmed_month = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE status = 'confirmed' AND month(start_date) = %d AND year(start_date) = %d", $cur_month, $cur_year));
         $total_active = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE status IN ('pending', 'confirmed') AND contact_email != 'manuale@calendario.local'");
 
         $active_tab = 'requests';
@@ -150,7 +152,7 @@ class GCS_Admin_Page {
             </style>
 
             <div class="gcs-admin-header">
-                <h1>Gestione Casa Scout <span class="gcs-version">v1.7.2</span></h1>
+                <h1>Gestione Casa Scout <span class="gcs-version">v1.7.3</span></h1>
             </div>
 
             <?php echo $message_html; ?>
@@ -301,7 +303,7 @@ class GCS_Admin_Page {
                                     <td style="text-align:right; white-space:nowrap;">
                                         <?php if ($req->status !== 'trash'): ?>
                                             <div style="display:inline-flex; align-items:center; gap:5px;">
-                                                <form method="POST" style="margin:0;">
+                                                <form method="POST" action="<?php echo admin_url('admin.php?page=gestione-casa-scout'); ?>" style="margin:0;">
                                                     <input type="hidden" name="gcs_admin_action" value="gcs_update_status">
                                                     <?php wp_nonce_field('gcs_admin_dashboard_action', 'gcs_admin_nonce'); ?>
                                                     <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
@@ -311,7 +313,7 @@ class GCS_Admin_Page {
                                                         <option value="rejected" <?php selected($req->status, 'rejected'); ?>>Rifiuta</option>
                                                     </select>
                                                 </form>
-                                                <form method="POST" style="margin:0;" onsubmit="return confirm('Spostare nel cestino?');">
+                                                <form method="POST" action="<?php echo admin_url('admin.php?page=gestione-casa-scout'); ?>" style="margin:0;" onsubmit="return confirm('Spostare nel cestino? Questo toglierà l\'evento dal calendario.');">
                                                     <input type="hidden" name="gcs_admin_action" value="gcs_trash_request">
                                                     <?php wp_nonce_field('gcs_admin_dashboard_action', 'gcs_admin_nonce'); ?>
                                                     <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
@@ -320,13 +322,13 @@ class GCS_Admin_Page {
                                             </div>
                                         <?php else: ?>
                                             <div style="display:inline-flex; align-items:center; gap:5px;">
-                                                <form method="POST" style="margin:0;">
+                                                <form method="POST" action="<?php echo admin_url('admin.php?page=gestione-casa-scout'); ?>" style="margin:0;">
                                                     <input type="hidden" name="gcs_admin_action" value="gcs_restore_request">
                                                     <?php wp_nonce_field('gcs_admin_dashboard_action', 'gcs_admin_nonce'); ?>
                                                     <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
                                                     <button type="submit" class="button button-secondary" style="font-size:10px; padding:2px 8px; min-height:auto;">Ripristina</button>
                                                 </form>
-                                                <form method="POST" style="margin:0;" onsubmit="return confirm('ELIMINARE PER SEMPRE?');">
+                                                <form method="POST" action="<?php echo admin_url('admin.php?page=gestione-casa-scout'); ?>" style="margin:0;" onsubmit="return confirm('ELIMINARE PER SEMPRE?');">
                                                     <input type="hidden" name="gcs_admin_action" value="gcs_delete_permanent">
                                                     <?php wp_nonce_field('gcs_admin_dashboard_action', 'gcs_admin_nonce'); ?>
                                                     <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
