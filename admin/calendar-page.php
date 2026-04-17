@@ -43,12 +43,14 @@ class GCS_Calendar_Page {
                     $new_start = sanitize_text_field($_POST['edit_start']);
                     $new_end = sanitize_text_field($_POST['edit_end']);
                     $new_msg = sanitize_textarea_field($_POST['edit_message']);
+                    $new_status = isset($_POST['edit_status']) ? sanitize_text_field($_POST['edit_status']) : 'confirmed';
                     
                     $wpdb->update($table_name, array(
                         'group_name' => $new_title,
                         'start_date' => $new_start,
                         'end_date' => $new_end,
-                        'message' => $new_msg
+                        'message' => $new_msg,
+                        'status' => $new_status
                     ), array('id' => $edit_id));
                     
                     $message = '<div class="notice notice-success is-dismissible"><p>Modifiche salvate correttamente.</p></div>';
@@ -93,7 +95,7 @@ class GCS_Calendar_Page {
             echo '<div style="display:flex; justify-content:center; align-items:center; height:24px; margin-bottom:5px;"><span style="font-weight:bold; color:#444; opacity:0.6;">'.$day.'</span></div>';
             foreach ($events as $ev) {
                 if ($cur >= $ev->start_date && $cur <= $ev->end_date) {
-                    $color = ($ev->contact_email == 'manuale@calendario.local') ? '#e74c3c' : '#3498db';
+                    $color = ($ev->contact_email == 'manuale@calendario.local') ? '#e74c3c' : '#2d5a27';
                     $cleanMsg = str_replace(array("\r","\n","'"), array(" "," ","\'"), $ev->message);
                     
                     $is_start = ($cur == $ev->start_date);
@@ -107,7 +109,7 @@ class GCS_Calendar_Page {
                     $showText = ($is_start || $is_mon || $day == 1);
                     $txtColor = $showText ? '#fff' : 'transparent';
 
-                    echo '<div onclick="gcsOpenEventModal('.$ev->id.', \''.esc_js($ev->group_name).'\', \''.$ev->start_date.'\', \''.$ev->end_date.'\', \''.esc_js($cleanMsg).'\')" class="'.implode(' ', $cls).'" style="background:'.$color.'; color:'.$txtColor.';" title="'.esc_attr($ev->group_name).'">'.esc_html($ev->group_name).'</div>';
+                    echo '<div onclick="gcsOpenEventModal('.$ev->id.', \''.esc_js($ev->group_name).'\', \''.$ev->start_date.'\', \''.$ev->end_date.'\', \''.esc_js($cleanMsg).'\', \''.esc_js($ev->contact_email).'\', \''.$ev->status.'\')" class="'.implode(' ', $cls).'" style="background:'.$color.'; color:'.$txtColor.';" title="'.esc_attr($ev->group_name).'">'.esc_html($ev->group_name).'</div>';
                 }
             }
             echo '</td>'; $cell++;
@@ -115,16 +117,18 @@ class GCS_Calendar_Page {
         while ($cell % 7 != 0) { echo '<td style="border:1px solid #eee; background:#fdfdfd; height:110px;"></td>'; $cell++; }
         echo '</tr></tbody></table></div>';
         
-        // Colonna Azioni
         echo '<div style="flex:1 1 30%; background:#fff; border:1px solid #ccd0d4; padding:25px; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,.05);">';
-        echo '<h3 style="margin-top:0;">Aggiungi Impegno Rapido</h3>';
+        echo '<h3 style="margin-top:0;">✨ Nuovo Impegno Rapido</h3>';
+        echo '<p class="description">Inserisci qui impegni personali o blocchi manuali per escludere date dal sistema.</p>';
         echo '<form method="POST">';
         wp_nonce_field('add_manual_event', 'gcs_nonce');
         echo '<input type="hidden" name="gcs_admin_add_manual" value="1">';
-        echo '<p><label>Titolo</label><input type="text" name="event_title" required class="large-text"></p>';
-        echo '<p><label>Inizio</label><input type="date" name="event_start" required class="large-text"></p>';
-        echo '<p><label>Fine</label><input type="date" name="event_end" required class="large-text"></p>';
-        echo '<button type="submit" class="button button-primary" style="width:100%;">Salva</button></form></div>';
+        echo '<p><label><b>Titolo Impegno</b></label><input type="text" name="event_title" required class="large-text" placeholder="Es. Manutenzione Giardino"></p>';
+        echo '<div style="display:flex; gap:10px;">';
+        echo '<p style="flex:1;"><label><b>Inizio</b></label><input type="date" name="event_start" required class="large-text"></p>';
+        echo '<p style="flex:1;"><label><b>Fine</b></label><input type="date" name="event_end" required class="large-text"></p>';
+        echo '</div>';
+        echo '<button type="submit" class="button button-primary" style="width:100%; height:40px; font-weight:700;">Salva Impegno</button></form></div>';
         echo '</div></div>';
 
         // Modal e Script
@@ -132,56 +136,111 @@ class GCS_Calendar_Page {
         <style>
             .gcs-admin-cal-event {
                 cursor:pointer; padding:4px 8px; margin:4px 0; font-size:11px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-                transition: filter 0.2s; width: 100%; box-sizing: border-box; position:relative; z-index:1;
+                transition: filter 0.2s; width: 100%; box-sizing: border-box; position:relative; z-index:1; font-weight: 600;
             }
-            .gcs-admin-cal-event:hover { filter: brightness(1.1); z-index:2; }
-            .gcs-admin-cal-event.cont-prev {
-                border-top-left-radius: 0; border-bottom-left-radius: 0;
-                margin-left: -5px; width: calc(100% + 5px);
-            }
-            .gcs-admin-cal-event.cont-next {
-                border-top-right-radius: 0; border-bottom-right-radius: 0;
-                margin-right: -5px; width: calc(100% + 5px);
-            }
+            .gcs-admin-cal-event:hover { filter: brightness(1.1); z-index:2; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            .gcs-admin-cal-event.cont-prev { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -5px; width: calc(100% + 5px); }
+            .gcs-admin-cal-event.cont-next { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: -5px; width: calc(100% + 5px); }
             .gcs-admin-cal-event.cont-prev.cont-next { width: calc(100% + 10px); }
 
-            .gcs-modal { display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(3px); align-items:center; justify-content:center; }
-            .gcs-modal-content { background:#fff; padding:30px; border-radius:12px; width:450px; max-width:90%; }
+            .gcs-modal { display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center; }
+            .gcs-modal-content { background:#fff; padding:30px; border-radius:16px; width:480px; max-width:95%; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+            .modal-label { display: block; font-weight: 700; font-size: 11px; text-transform: uppercase; color: #64748b; margin-bottom: 5px; }
+            .modal-info-row { background: #f8fafc; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         </style>
+        
         <div id="gcsEditModal" class="gcs-modal"><div class="gcs-modal-content">
-            <h2 style="margin-top:0;">Modifica Evento</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0; font-weight:800; color:#1e293b;">Dettaglio Impegno</h2>
+                <span id="gcs_source_badge" style="font-size:10px; padding:3px 8px; border-radius:10px; font-weight:800; text-transform:uppercase;"></span>
+            </div>
+
+            <div id="gcs_modal_contact_info" class="modal-info-row">
+                <span class="modal-label">Contatto</span>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong id="modal_display_email" style="color:var(--gcs-primary);"></strong>
+                    <span id="modal_display_id" style="font-size:10px; color:#94a3b8;"></span>
+                </div>
+            </div>
+
             <form method="POST">
                 <?php wp_nonce_field('edit_event_action', 'gcs_edit_nonce'); ?>
                 <input type="hidden" name="gcs_edit_event_action" value="1">
                 <input type="hidden" name="edit_id" id="edit_id">
                 <input type="hidden" name="gcs_event_op" id="gcs_admin_event_op" value="save">
-                <p><label>Titolo</label><br/><input type="text" name="edit_title" id="edit_title" required class="large-text"></p>
-                <div style="display:flex; gap:10px;">
-                    <p style="flex:1;"><label>Inizio</label><br/><input type="date" name="edit_start" id="edit_start" required class="large-text"></p>
-                    <p style="flex:1;"><label>Fine</label><br/><input type="date" name="edit_end" id="edit_end" required class="large-text"></p>
+                
+                <p>
+                    <label class="modal-label">Titolo / Gruppo</label>
+                    <input type="text" name="edit_title" id="edit_title" required class="large-text" style="font-weight:700;">
+                </p>
+                
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <div style="flex:1;">
+                        <label class="modal-label">Inizio</label>
+                        <input type="date" name="edit_start" id="edit_start" required class="large-text">
+                    </div>
+                    <div style="flex:1;">
+                        <label class="modal-label">Fine</label>
+                        <input type="date" name="edit_end" id="edit_end" required class="large-text">
+                    </div>
                 </div>
-                <p><label>Note</label><br/><textarea name="edit_message" id="edit_message" rows="3" class="large-text"></textarea></p>
-                <div style="display:flex; justify-content:space-between; margin-top:20px;">
+
+                <div id="gcs_status_sector" style="margin-bottom:20px; padding:15px; background:#fff8eb; border-radius:10px; border:1px solid #ffe8cc;">
+                    <label class="modal-label" style="color:#b45309;">STATO PRENOTAZIONE</label>
+                    <select name="edit_status" id="edit_status" class="large-text" style="background:#fff;">
+                        <option value="pending">⏳ Metti in ATTESA (toglie dal calendario)</option>
+                        <option value="confirmed">✅ CONFERMATA (visibile nel calendario)</option>
+                        <option value="rejected">❌ RIFIUTATA (toglie dal calendario)</option>
+                    </select>
+                </div>
+
+                <p>
+                    <label class="modal-label">Note / Messaggio</label>
+                    <textarea name="edit_message" id="edit_message" rows="3" class="large-text" style="font-size:13px;"></textarea>
+                </p>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:25px;">
                     <button type="button" onclick="document.getElementById('gcsEditModal').style.display='none'" class="button">Annulla</button>
-                    <div>
-                        <div id="gcs_admin_delete_confirm" style="display:none; background:#fff1f0; border:1px solid #ffa39e; padding:10px; border-radius:6px; margin-bottom:10px; text-align:center;">
-                            <p style="margin:0 0 10px; color:#d63638; font-weight:bold;">Sei sicuro?</p>
-                            <button type="submit" class="button" style="background:#d63638; color:#fff; border:none;" onclick="document.getElementById('gcs_admin_event_op').value='delete';">Si, elimina</button>
-                            <button type="button" class="button" onclick="document.getElementById('gcs_admin_delete_confirm').style.display='none';">No</button>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div id="gcs_admin_delete_confirm" style="display:none; background:#fff1f0; border:1px solid #ffa39e; padding:8px 15px; border-radius:8px; text-align:center; position:absolute; bottom:80px; right:30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); z-index:10;">
+                            <p style="margin:0 0 10px; color:#d63638; font-weight:bold; font-size:12px;">Eliminare definitivamente?</p>
+                            <button type="submit" class="button" style="background:#d63638; color:#fff; border:none; font-weight:700;" onclick="document.getElementById('gcs_admin_event_op').value='delete';">Si, elimina</button>
+                            <button type="button" class="button" onclick="document.getElementById('gcs_admin_delete_confirm').style.display='none'; document.getElementById('gcs_admin_delete_trigger').style.display='inline-block';">No</button>
                         </div>
-                        <button type="button" class="button button-link-delete" style="color:#d63638;" id="gcs_admin_delete_trigger" onclick="document.getElementById('gcs_admin_delete_confirm').style.display='block'; this.style.display='none';">Elimina</button>
-                        <button type="submit" class="button button-primary" onclick="console.log('Admin: Saving event...'); document.getElementById('gcs_admin_event_op').value='save';">Salva</button>
+                        <button type="button" class="button button-link-delete" style="color:#d63638;" id="gcs_admin_delete_trigger" onclick="document.getElementById('gcs_admin_delete_confirm').style.display='block'; this.style.display='none';">🗑️</button>
+                        <button type="submit" class="button button-primary" style="height:40px; padding:0 30px; font-weight:700;" onclick="document.getElementById('gcs_admin_event_op').value='save';">Salva Modifiche</button>
                     </div>
                 </div>
             </form>
         </div></div>
         <script>
-            function gcsOpenEventModal(id, title, start, end, msg) {
+            function gcsOpenEventModal(id, title, start, end, msg, email, status) {
                 document.getElementById('edit_id').value = id;
                 document.getElementById('edit_title').value = title;
                 document.getElementById('edit_start').value = start;
                 document.getElementById('edit_end').value = end;
                 document.getElementById('edit_message').value = msg;
+                document.getElementById('modal_display_email').innerText = email;
+                document.getElementById('modal_display_id').innerText = '#' + id;
+                document.getElementById('edit_status').value = status || 'confirmed';
+                
+                var sourceBadge = document.getElementById('gcs_source_badge');
+                var statusSector = document.getElementById('gcs_status_sector');
+                
+                if (email === 'manuale@calendario.local') {
+                    sourceBadge.innerText = 'Impegno Manuale';
+                    sourceBadge.style.background = '#fee2e2';
+                    sourceBadge.style.color = '#b91c1c';
+                    statusSector.style.display = 'none';
+                    document.getElementById('gcs_modal_contact_info').style.display = 'none';
+                } else {
+                    sourceBadge.innerText = 'Richiesta Modulo';
+                    sourceBadge.style.background = '#dcfce7';
+                    sourceBadge.style.color = '#166534';
+                    statusSector.style.display = 'block';
+                    document.getElementById('gcs_modal_contact_info').style.display = 'block';
+                }
+
                 document.getElementById('gcs_admin_event_op').value = 'save';
                 document.getElementById('gcs_admin_delete_confirm').style.display = 'none';
                 document.getElementById('gcs_admin_delete_trigger').style.display = 'inline-block';

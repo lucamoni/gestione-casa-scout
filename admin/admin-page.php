@@ -219,7 +219,9 @@ class GCS_Admin_Page {
                                             <?php echo $req->status == 'confirmed' ? 'Confermata' : ($req->status == 'rejected' ? 'Rifiutata' : 'In attesa'); ?>
                                         </span>
                                         <?php if($req->status == 'confirmed'): ?>
-                                            <br/><div class="admin-sync-tag">🔗 Sincronizzato con Calendario</div>
+                                            <br/>
+                                            <div class="admin-sync-tag">🔗 Sincronizzato con Calendario</div>
+                                            <a href="#" onclick="gcsAdminTab('calendar'); return false;" style="font-size:10px; color:var(--gcs-primary); display:block; margin-top:5px; font-weight:700;">👁️ Visualizza nel Calendario</a>
                                         <?php endif; ?>
                                     </td>
                                     <td style="text-align:right;">
