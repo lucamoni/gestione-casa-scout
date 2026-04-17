@@ -58,13 +58,38 @@ class GCS_Admin_Page {
         if (!isset($_POST['gcs_admin_action'])) return;
         if (!current_user_can('manage_options')) return;
 
+        // Verifica un nonce globale per la pagina admin
+        if (!isset($_POST['gcs_admin_nonce']) || !wp_verify_nonce($_POST['gcs_admin_nonce'], 'gcs_admin_dashboard_action')) {
+            wp_die('Errore di sicurezza: Nonce non valido.');
+        }
+
         $action = $_POST['gcs_admin_action'];
+        $request_id = intval($_POST['request_id'] ?? 0);
         
         if ($action === 'gcs_update_status') {
-            self::handle_status_update();
+            $new_status = sanitize_text_field($_POST['new_status'] ?? 'pending');
+            GCS_DB_Manager::update_status($request_id, $new_status);
+            wp_safe_redirect(admin_url('admin.php?page=gestione-casa-scout&message=status_updated'));
+            exit;
         }
-        if ($action === 'gcs_delete_request') {
-            self::handle_request_deletion();
+        
+        if ($action === 'gcs_trash_request') {
+            GCS_DB_Manager::update_status($request_id, 'trash');
+            wp_safe_redirect(admin_url('admin.php?page=gestione-casa-scout&message=request_trashed'));
+            exit;
+        }
+
+        if ($action === 'gcs_restore_request') {
+            GCS_DB_Manager::update_status($request_id, 'pending');
+            wp_safe_redirect(admin_url('admin.php?page=gestione-casa-scout&message=status_updated'));
+            exit;
+        }
+
+        if ($action === 'gcs_delete_permanent') {
+            global $wpdb;
+            $wpdb->delete($wpdb->prefix . 'gcs_requests', array('id' => $request_id));
+            wp_safe_redirect(admin_url('admin.php?page=gestione-casa-scout&message=request_deleted'));
+            exit;
         }
     }
 
@@ -84,7 +109,8 @@ class GCS_Admin_Page {
         $message_html = '';
         if (isset($_GET['message'])) {
             $msg = sanitize_text_field($_GET['message']);
-            if ($msg == 'status_updated') $message_html = '<div class="notice notice-success is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>✅ Stato aggiornato correttamente!</p></div>';
+            if ($msg == 'status_updated') $message_html = '<div class="notice notice-success is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>✅ Operazione completata con successo!</p></div>';
+            if ($msg == 'request_trashed') $message_html = '<div class="notice notice-warning is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>🗑️ Richiesta spostata nel Cestino. Puoi ancora recuperarla filtrando per "Cestino".</p></div>';
             if ($msg == 'request_deleted') $message_html = '<div class="notice notice-success is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>🗑️ Richiesta eliminata definitivamente.</p></div>';
         }
 
@@ -123,8 +149,7 @@ class GCS_Admin_Page {
             </style>
 
             <div class="gcs-admin-header">
-                <h1>Gestione Casa Scout <span class="gcs-version">v1.7.0</span></h1>
-                <div style="font-weight: 600; color: #64748b;">Pannello Scouter Pro</div>
+                <h1>Gestione Casa Scout <span class="gcs-version">v1.7.1</span></h1>
             </div>
 
             <?php echo $message_html; ?>
@@ -176,7 +201,24 @@ class GCS_Admin_Page {
     }
 
     public static function render_admin_page() {
-        $requests = GCS_DB_Manager::get_requests();
+        global $wpdb;
+        $table = $wpdb->prefix . 'gcs_requests';
+        
+        $filter = $_GET['status_filter'] ?? 'active';
+        $where = "WHERE contact_email != 'manuale@calendario.local'";
+        
+        if ($filter == 'active') {
+            $where .= " AND status NOT IN ('trash', 'rejected')";
+        } elseif ($filter == 'rejected') {
+            $where .= " AND status = 'rejected'";
+        } elseif ($filter == 'trash') {
+            $where .= " AND status = 'trash'";
+        } elseif ($filter == 'confirmed') {
+            $where .= " AND status = 'confirmed'";
+        }
+        // 'all' doesn't add anything extra except excluding manual
+        
+        $requests = $wpdb->get_results("SELECT * FROM $table $where ORDER BY created_at DESC");
         ?>
         <div class="gcs-requests-list">
             <style>
@@ -189,13 +231,28 @@ class GCS_Admin_Page {
                 .admin-badge-pending { background: #fef3c7; color: #92400e; }
                 .admin-badge-confirmed { background: #dcfce7; color: #166534; }
                 .admin-badge-rejected { background: #fee2e2; color: #991b1b; }
+                .admin-badge-trash { background: #f1f5f9; color: #64748b; }
                 
                 .admin-sync-tag { font-size: 10px; background: #e0f2fe; color: #1a4581; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-top: 5px; display: inline-flex; align-items: center; gap: 3px; }
                 
                 .admin-action-select { padding: 5px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 12px; font-weight: 600; cursor: pointer; }
                 .admin-delete-btn { color: #ef4444; text-decoration: none; font-size: 18px; margin-left: 10px; cursor: pointer; transition: transform 0.2s; border:none; background:none; }
                 .admin-delete-btn:hover { transform: scale(1.2); }
+
+                .gcs-filter-bar { padding: 15px 20px; background: #fff; border-bottom: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: center; }
+                .gcs-filter-link { text-decoration: none; color: #64748b; font-weight: 600; font-size: 13px; padding: 5px 12px; border-radius: 6px; transition: all 0.2s; }
+                .gcs-filter-link.active { background: var(--gcs-primary); color: #fff; }
             </style>
+
+            <div class="gcs-filter-bar">
+                <span style="font-size:12px; font-weight:800; text-transform:uppercase; color:#94a3b8; margin-right:10px;">Filtra per:</span>
+                <a href="?page=gestione-casa-scout&status_filter=active" class="gcs-filter-link <?php echo $filter == 'active' ? 'active' : ''; ?>">⚡ Attive</a>
+                <a href="?page=gestione-casa-scout&status_filter=confirmed" class="gcs-filter-link <?php echo $filter == 'confirmed' ? 'active' : ''; ?>">✅ Confermate</a>
+                <a href="?page=gestione-casa-scout&status_filter=rejected" class="gcs-filter-link <?php echo $filter == 'rejected' ? 'active' : ''; ?>">❌ Rifiutate</a>
+                <a href="?page=gestione-casa-scout&status_filter=trash" class="gcs-filter-link <?php echo $filter == 'trash' ? 'active' : ''; ?>">🗑️ Cestino</a>
+                <a href="?page=gestione-casa-scout&status_filter=all" class="gcs-filter-link <?php echo $filter == 'all' ? 'active' : ''; ?>">📋 Tutte</a>
+            </div>
+
             <div class="gcs-table-container">
                 <table class="gcs-admin-table">
                     <thead>
@@ -227,7 +284,12 @@ class GCS_Admin_Page {
                                     </td>
                                     <td>
                                         <span class="admin-badge admin-badge-<?php echo $req->status; ?>">
-                                            <?php echo $req->status == 'confirmed' ? 'Confermata' : ($req->status == 'rejected' ? 'Rifiutata' : 'In attesa'); ?>
+                                            <?php 
+                                            if ($req->status == 'confirmed') echo 'Confermata';
+                                            elseif ($req->status == 'rejected') echo 'Rifiutata';
+                                            elseif ($req->status == 'trash') echo 'Cestinata';
+                                            else echo 'In attesa';
+                                            ?>
                                         </span>
                                         <?php if($req->status == 'confirmed'): ?>
                                             <br/>
@@ -236,22 +298,37 @@ class GCS_Admin_Page {
                                         <?php endif; ?>
                                     </td>
                                     <td style="text-align:right;">
-                                        <form method="POST" style="display:inline-flex; align-items:center;">
-                                            <input type="hidden" name="gcs_admin_action" value="gcs_update_status">
-                                            <?php wp_nonce_field( 'gcs_update_status_' . $req->id ); ?>
-                                            <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
-                                            <select name="new_status" onchange="this.form.submit()" class="admin-action-select">
-                                                <option value="pending" <?php selected($req->status, 'pending'); ?>>Cambia in: Attesa</option>
-                                                <option value="confirmed" <?php selected($req->status, 'confirmed'); ?>>Cambia in: Conferma</option>
-                                                <option value="rejected" <?php selected($req->status, 'rejected'); ?>>Cambia in: Rifiuta</option>
-                                            </select>
-                                        </form>
-                                        <form method="POST" style="display:inline-flex;" onsubmit="return confirm('Vuoi eliminare definitivamente questa richiesta?');">
-                                            <input type="hidden" name="gcs_admin_action" value="gcs_delete_request">
-                                            <?php wp_nonce_field( 'gcs_delete_request_' . $req->id ); ?>
-                                            <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
-                                            <button type="submit" class="admin-delete-btn" title="Elimina definitivamente">🗑️</button>
-                                        </form>
+                                        <?php if ($req->status !== 'trash'): ?>
+                                            <form method="POST" style="display:inline-flex; align-items:center;">
+                                                <input type="hidden" name="gcs_admin_action" value="gcs_update_status">
+                                                <input type="hidden" name="gcs_admin_nonce" value="<?php echo wp_create_nonce('gcs_admin_dashboard_action'); ?>">
+                                                <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                                <select name="new_status" onchange="this.form.submit()" class="admin-action-select">
+                                                    <option value="pending" <?php selected($req->status, 'pending'); ?>>Cambia in: Attesa</option>
+                                                    <option value="confirmed" <?php selected($req->status, 'confirmed'); ?>>Cambia in: Conferma</option>
+                                                    <option value="rejected" <?php selected($req->status, 'rejected'); ?>>Cambia in: Rifiuta</option>
+                                                </select>
+                                            </form>
+                                            <form method="POST" style="display:inline-flex;" onsubmit="return confirm('Spostare nel cestino questa richiesta?');">
+                                                <input type="hidden" name="gcs_admin_action" value="gcs_trash_request">
+                                                <input type="hidden" name="gcs_admin_nonce" value="<?php echo wp_create_nonce('gcs_admin_dashboard_action'); ?>">
+                                                <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                                <button type="submit" class="admin-delete-btn" title="Sposta nel cestino">🗑️</button>
+                                            </form>
+                                        <?php else: ?>
+                                            <form method="POST" style="display:inline-flex;">
+                                                <input type="hidden" name="gcs_admin_action" value="gcs_restore_request">
+                                                <input type="hidden" name="gcs_admin_nonce" value="<?php echo wp_create_nonce('gcs_admin_dashboard_action'); ?>">
+                                                <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                                <button type="submit" class="button button-secondary" style="font-size:10px;">Ripristina</button>
+                                            </form>
+                                            <form method="POST" style="display:inline-flex;" onsubmit="return confirm('ELIMINARE PER SEMPRE? Questa azione non è reversibile.');">
+                                                <input type="hidden" name="gcs_admin_action" value="gcs_delete_permanent">
+                                                <input type="hidden" name="gcs_admin_nonce" value="<?php echo wp_create_nonce('gcs_admin_dashboard_action'); ?>">
+                                                <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                                <button type="submit" class="admin-delete-btn" style="color:#000;" title="Elimina definitivamente">💀</button>
+                                            </form>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
