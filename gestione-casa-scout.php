@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Gestione Casa Scout
  * Description: Sistema cucito su misura per la casa scout: form contatti con salvataggio nel database, Dashboard Admin per la gestione e calendario richieste. Utilizzare [gcs_booking_form] per il modulo e [gcs_calendar] per il calendario.
- * Version: 1.5.1
+ * Version: 1.5.2
  * Author: Luca Moni
  * Text Domain: gestione-casa-scout
  */
@@ -21,20 +21,25 @@ require_once plugin_dir_path( __FILE__ ) . 'admin/admin-page.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin/settings-page.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin/calendar-page.php';
 
-// Plugin Update Checker - Nuovo approccio JSON diretto
+// Plugin Update Checker - Reset Totale
 require_once plugin_dir_path( __FILE__ ) . 'includes/plugin-update-checker/plugin-update-checker.php';
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 $myUpdateChecker = PucFactory::buildUpdateChecker(
 	'https://raw.githubusercontent.com/lucamoni/gestione-casa-scout/main/info.json',
 	__FILE__,
-	'gestione-casa-scout'
+	'gcs-final-slug-152' // Slug mai usato per resettare tutto
 );
 
-// Forza la pulizia della cache degli aggiornamenti per resettare i vecchi errori
+// Forza la pulizia di ogni possibile rimasuglio di errore
 add_action('admin_init', function() {
     delete_site_transient('update_plugins');
-    delete_transient('puc_update_check_gestione-casa-scout');
+    $transients = array(
+        'puc_update_check_gestione-casa-scout',
+        'puc_update_check_gcs-plugin-updates',
+        'puc_update_check_gcs-final-slug-152'
+    );
+    foreach($transients as $t) delete_transient($t);
 });
 
 // Hook di attivazione per creare la tabella nel database al momento dell'installazione

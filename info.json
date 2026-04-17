@@ -1,7 +1,7 @@
 {
     "name": "Gestione Casa Scout",
     "slug": "gestione-casa-scout",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "author": "Luca Moni",
     "download_url": "https://github.com/lucamoni/gestione-casa-scout/archive/refs/heads/main.zip",
     "sections": {
