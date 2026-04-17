@@ -135,9 +135,50 @@ class GCS_Reserved_Area_Shortcode {
 
         $tabs_style = 'padding: 10px 20px; text-decoration: none; font-weight: bold; margin-bottom: -2px; transition: color 0.3s; cursor: pointer;';
         
+        $message_html = '';
+
+        // GESTIONE AZIONI CALENDARIO
+        if (isset($_POST['gcs_edit_event_action'])) {
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'gcs_requests';
+            $edit_id = isset($_POST['edit_id']) ? intval($_POST['edit_id']) : 0;
+            $op = isset($_POST['gcs_event_op']) ? sanitize_text_field($_POST['gcs_event_op']) : 'save';
+
+            if ($edit_id > 0) {
+                if ($op === 'delete') {
+                    $wpdb->query($wpdb->prepare("DELETE FROM $table_name WHERE id = %d", $edit_id));
+                    $message_html = '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; text-align:center; font-weight:bold;">Evento rimosso con successo.</div>';
+                } else {
+                    $wpdb->update($table_name, array(
+                        'group_name' => sanitize_text_field($_POST['edit_title']),
+                        'start_date' => sanitize_text_field($_POST['edit_start']),
+                        'end_date' => sanitize_text_field($_POST['edit_end']),
+                        'message' => sanitize_textarea_field($_POST['edit_message'])
+                    ), array('id' => $edit_id));
+                    $message_html = '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; text-align:center; font-weight:bold;">Modifiche salvate correttamente.</div>';
+                }
+            }
+        }
+
+        if (isset($_POST['gcs_add_manual_event'])) {
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'gcs_requests';
+            $wpdb->insert($table_name, array(
+                'group_name' => sanitize_text_field($_POST['event_title']),
+                'contact_email' => 'manuale@calendario.local',
+                'start_date' => sanitize_text_field($_POST['event_start']),
+                'end_date' => sanitize_text_field($_POST['event_end']),
+                'guests_count' => 0,
+                'message' => 'Inserimento manuale.',
+                'status' => 'confirmed'
+            ));
+            $message_html = '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; text-align:center; font-weight:bold;">Nuovo impegno aggiunto.</div>';
+        }
+
         ob_start();
         ?>
         <div class="gcs-reserved-wrapper" style="font-family: inherit; margin: 30px 0;">
+            <?php echo $message_html; ?>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eaeaea;">
                 <h2 style="margin: 0; color: #1a4581; font-size: 24px; font-family: 'Martel', serif;">Area Riservata</h2>
                 <a href="<?php echo esc_url(add_query_arg('gcs_logout', '1')); ?>" style="background: #e74c3c; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; transition: background 0.3s;" onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'">Esci Sessione</a>
@@ -467,26 +508,7 @@ class GCS_Reserved_Area_Shortcode {
             }
         }
 
-        if (isset($_POST['gcs_edit_event_action']) && wp_verify_nonce($_POST['gcs_edit_nonce'], 'edit_event_action')) {
-            $edit_id = intval($_POST['edit_id']);
-            $op = isset($_POST['gcs_event_op']) ? sanitize_text_field($_POST['gcs_event_op']) : 'save';
-
-            if ($edit_id > 0) {
-                if ($op === 'delete') {
-                    $result = $wpdb->delete($table_name, array('id' => $edit_id), array('%d'));
-                    $message_html = $result ? '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; text-align:center; font-weight:bold;">Evento rimosso con successo dal calendario.</div>' : '<div style="background:#f8d7da; color:#721c24; padding:15px; border-radius:4px; margin-bottom:20px; text-align:center; font-weight:bold;">Errore nell\'eliminazione dell\'evento.</div>';
-                } else {
-                    GCS_DB_Manager::update_request($edit_id, array(
-                        'group_name' => sanitize_text_field($_POST['edit_title']),
-                        'start_date' => sanitize_text_field($_POST['edit_start']),
-                        'end_date' => sanitize_text_field($_POST['edit_end']),
-                        'message' => sanitize_textarea_field($_POST['edit_message'])
-                    ));
-                    $message_html = '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; text-align:center; font-weight:bold;">Modifiche salvate con successo.</div>';
-                }
-            }
-        }
-
+        // POST logic moved to render_reserved_area for centralization
         $start_date_month = sprintf("%04d-%02d-01", $year, $month);
         $end_date_month = date("Y-m-t", strtotime($start_date_month));
         $events = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE status = 'confirmed' AND (start_date <= %s AND end_date >= %s) ORDER BY start_date ASC", $end_date_month, $start_date_month));

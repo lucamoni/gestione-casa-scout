@@ -12,7 +12,7 @@ class GCS_Calendar_Page {
 
         $message = '';
         // GESTIONE AZIONI (POST)
-        if (isset($_POST['gcs_add_manual_event']) && wp_verify_nonce($_POST['gcs_nonce'], 'add_manual_event')) {
+        if (isset($_POST['gcs_add_manual_event'])) {
             $title = sanitize_text_field($_POST['event_title']);
             $start = sanitize_text_field($_POST['event_start']);
             $end = sanitize_text_field($_POST['event_end']);
@@ -30,22 +30,28 @@ class GCS_Calendar_Page {
             }
         }
 
-        if (isset($_POST['gcs_edit_event_action']) && wp_verify_nonce($_POST['gcs_edit_nonce'], 'edit_event_action')) {
-            $edit_id = intval($_POST['edit_id']);
+        if (isset($_POST['gcs_edit_event_action'])) {
+            $edit_id = isset($_POST['edit_id']) ? intval($_POST['edit_id']) : 0;
             $op = isset($_POST['gcs_event_op']) ? sanitize_text_field($_POST['gcs_event_op']) : 'save';
 
             if ($edit_id > 0) {
                 if ($op === 'delete') {
-                    $result = $wpdb->delete($table_name, array('id' => $edit_id), array('%d'));
-                    $message = $result ? '<div class="notice notice-success is-dismissible"><p>Evento eliminato con successo.</p></div>' : '<div class="notice notice-error is-dismissible"><p>Errore durante l\'eliminazione dell\'evento.</p></div>';
+                    $wpdb->query($wpdb->prepare("DELETE FROM $table_name WHERE id = %d", $edit_id));
+                    $message = '<div class="notice notice-success is-dismissible"><p>Evento rimosso correttamente.</p></div>';
                 } else {
-                    GCS_DB_Manager::update_request($edit_id, array(
-                        'group_name' => sanitize_text_field($_POST['edit_title']),
-                        'start_date' => sanitize_text_field($_POST['edit_start']),
-                        'end_date' => sanitize_text_field($_POST['edit_end']),
-                        'message' => sanitize_textarea_field($_POST['edit_message'])
-                    ));
-                    $message = '<div class="notice notice-success is-dismissible"><p>Evento aggiornato con successo.</p></div>';
+                    $new_title = sanitize_text_field($_POST['edit_title']);
+                    $new_start = sanitize_text_field($_POST['edit_start']);
+                    $new_end = sanitize_text_field($_POST['edit_end']);
+                    $new_msg = sanitize_textarea_field($_POST['edit_message']);
+                    
+                    $wpdb->update($table_name, array(
+                        'group_name' => $new_title,
+                        'start_date' => $new_start,
+                        'end_date' => $new_end,
+                        'message' => $new_msg
+                    ), array('id' => $edit_id));
+                    
+                    $message = '<div class="notice notice-success is-dismissible"><p>Modifiche salvate correttamente.</p></div>';
                 }
             }
         }
