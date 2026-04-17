@@ -39,6 +39,7 @@ add_action('admin_init', function() {
     if (isset($_GET['force_puc_check'])) {
         delete_site_transient('update_plugins');
         delete_transient('puc_update_check_gestione-casa-scout');
+        wp_die('<b>Successo:</b> Cache degli aggiornamenti pulita. <br><br>Puoi tornare alla <a href="' . admin_url('plugins.php') . '">lista dei plugin</a> per controllare l\'aggiornamento.');
     }
 });
 
