@@ -58,10 +58,12 @@ class GCS_Admin_Page {
         if (!isset($_POST['gcs_admin_action'])) return;
         if (!current_user_can('manage_options')) return;
 
-        if ($_POST['gcs_admin_action'] === 'gcs_update_status') {
+        $action = $_POST['gcs_admin_action'];
+        
+        if ($action === 'gcs_update_status') {
             self::handle_status_update();
         }
-        if ($_POST['gcs_admin_action'] === 'gcs_delete_request') {
+        if ($action === 'gcs_delete_request') {
             self::handle_request_deletion();
         }
     }
@@ -77,6 +79,13 @@ class GCS_Admin_Page {
         if (isset($_GET['page'])) {
             if ($_GET['page'] === 'gcs-admin-calendar') $active_tab = 'calendar';
             if ($_GET['page'] === 'gcs-admin-settings') $active_tab = 'settings';
+        }
+
+        $message_html = '';
+        if (isset($_GET['message'])) {
+            $msg = sanitize_text_field($_GET['message']);
+            if ($msg == 'status_updated') $message_html = '<div class="notice notice-success is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>✅ Stato aggiornato correttamente!</p></div>';
+            if ($msg == 'request_deleted') $message_html = '<div class="notice notice-success is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>🗑️ Richiesta eliminata definitivamente.</p></div>';
         }
 
         ?>
@@ -114,9 +123,11 @@ class GCS_Admin_Page {
             </style>
 
             <div class="gcs-admin-header">
-                <h1>Gestione Casa Scout <span class="gcs-version">v1.6.0</span></h1>
+                <h1>Gestione Casa Scout <span class="gcs-version">v1.6.1</span></h1>
                 <div style="font-weight: 600; color: #64748b;">Pannello Scouter Pro</div>
             </div>
+
+            <?php echo $message_html; ?>
 
             <div class="gcs-admin-stats">
                 <div class="gcs-stat-item pending">
@@ -253,28 +264,34 @@ class GCS_Admin_Page {
     }
 
     public static function handle_status_update() {
-        if ( ! current_user_can( 'manage_options' ) ) wp_die();
+        if ( ! current_user_can( 'manage_options' ) ) wp_die('Accesso negato.');
         $request_id = intval( $_POST['request_id'] ?? 0 );
-        if ( ! wp_verify_nonce( $_POST['_wpnonce'] ?? '', 'gcs_update_status_' . $request_id ) ) wp_die();
+        $nonce = $_POST['_wpnonce'] ?? '';
+        
+        if ( ! wp_verify_nonce( $nonce, 'gcs_update_status_' . $request_id ) ) {
+            wp_die('Errore di sicurezza: Nonce non valido per aggiornamento stato.');
+        }
+
         $new_status = sanitize_text_field( $_POST['new_status'] ?? 'pending' );
         GCS_DB_Manager::update_status( $request_id, $new_status );
         
-        if (!defined('DOING_AJAX')) {
-            wp_safe_redirect(admin_url('admin.php?page=gestione-casa-scout&message=status_updated'));
-            exit;
-        }
+        wp_safe_redirect(admin_url('admin.php?page=gestione-casa-scout&message=status_updated'));
+        exit;
     }
 
     public static function handle_request_deletion() {
-        if ( ! current_user_can( 'manage_options' ) ) wp_die();
+        if ( ! current_user_can( 'manage_options' ) ) wp_die('Accesso negato.');
         $request_id = intval( $_POST['request_id'] ?? 0 );
-        if ( ! wp_verify_nonce( $_POST['_wpnonce'] ?? '', 'gcs_delete_request_' . $request_id ) ) wp_die();
+        $nonce = $_POST['_wpnonce'] ?? '';
+
+        if ( ! wp_verify_nonce( $nonce, 'gcs_delete_request_' . $request_id ) ) {
+            wp_die('Errore di sicurezza: Nonce non valido per eliminazione.');
+        }
+
         global $wpdb;
         $wpdb->delete( $wpdb->prefix . 'gcs_requests', array( 'id' => $request_id ) );
         
-        if (!defined('DOING_AJAX')) {
-            wp_safe_redirect(admin_url('admin.php?page=gestione-casa-scout&message=request_deleted'));
-            exit;
-        }
+        wp_safe_redirect(admin_url('admin.php?page=gestione-casa-scout&message=request_deleted'));
+        exit;
     }
 }
