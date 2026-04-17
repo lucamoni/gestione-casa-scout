@@ -124,38 +124,57 @@ class GCS_Calendar_Shortcode {
                 }
 
                 .gcs-pub-cal-event {
-                    background: #3498db;
+                    background: var(--gcs-primary);
                     color: #fff;
-                    padding: 4px 8px;
-                    font-size: 10px;
+                    padding: 6px 10px;
+                    font-size: 11px;
                     font-weight: 700;
                     border-radius: 6px;
-                    margin-bottom: 3px;
+                    margin-bottom: 4px;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                     position: relative;
-                    z-index: 1;
-                    width: calc(100% + 1px);
+                    z-index: 10;
+                    display: block;
+                    width: calc(100% + 0px);
+                    box-sizing: border-box;
+                    transition: all 0.2s;
+                }
+
+                .gcs-pub-cal-event:hover {
+                    filter: brightness(1.1);
+                    z-index: 20;
                 }
 
                 .gcs-pub-cal-event.cont-prev {
                     border-top-left-radius: 0;
                     border-bottom-left-radius: 0;
-                    margin-left: -9px;
-                    width: calc(100% + 10px);
+                    margin-left: -9px; /* Esci dal padding della cella (8px) */
+                    width: calc(100% + 9px);
+                    padding-left: 17px; /* Compensa lo spostamento per il testo */
                 }
 
                 .gcs-pub-cal-event.cont-next {
                     border-top-right-radius: 0;
                     border-bottom-right-radius: 0;
                     margin-right: -9px;
-                    width: calc(100% + 10px);
+                    width: calc(100% + 9px);
+                }
+                
+                .gcs-pub-cal-event.cont-prev.cont-next {
+                    width: calc(100% + 18px);
                 }
 
                 .gcs-pub-cal-event.event-hidden-text {
-                    color: transparent;
+                    color: transparent !important;
+                    user-select: none;
+                }
+                
+                /* Assicura che la cella non strozzi la barra continua */
+                .gcs-pub-cal-table td {
+                    overflow: visible !important;
                 }
 
                 #gcs-calendar-ajax-wrapper { min-height: 400px; }

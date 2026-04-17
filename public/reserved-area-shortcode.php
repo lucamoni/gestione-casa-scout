@@ -214,13 +214,30 @@ class GCS_Reserved_Area_Shortcode {
                 .cal-day-num { font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 5px; display: block; }
                 
                 .event-bar { 
-                    padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; 
+                    padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; 
                     margin-bottom: 4px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-                    transition: transform 0.1s;
+                    transition: transform 0.1s; position: relative; z-index: 10;
                 }
-                .event-bar:hover { transform: scale(1.02); filter: brightness(1.1); }
+                .event-bar:hover { transform: scale(1.02); filter: brightness(1.1); z-index: 20; }
                 .event-manual { background: #ef4444; }
-                .event-request { background: #3b82f6; }
+                .event-request { background: var(--gcs-primary); }
+
+                .event-bar.cont-prev {
+                    border-top-left-radius: 0;
+                    border-bottom-left-radius: 0;
+                    margin-left: -9px;
+                    width: calc(100% + 9px);
+                    padding-left: 17px;
+                }
+                .event-bar.cont-next {
+                    border-top-right-radius: 0;
+                    border-bottom-right-radius: 0;
+                    margin-right: -9px;
+                    width: calc(100% + 9px);
+                }
+                .event-bar.cont-prev.cont-next { width: calc(100% + 18px); }
+                
+                .cal-day { overflow: visible !important; }
 
                 /* Modal glassmorphism */
                 .gcs-modal { 
@@ -445,15 +462,25 @@ class GCS_Reserved_Area_Shortcode {
                         <div class="cal-day <?php echo $is_today ? 'today' : ''; ?>">
                             <span class="cal-day-num"><?php echo $d; ?></span>
                             <?php 
+                            $week_day_index = date('N', strtotime($cur_date)); // 1-7
                             foreach($events as $e) {
                                 if($cur_date >= $e->start_date && $cur_date <= $e->end_date) {
                                     $is_start = ($cur_date == $e->start_date);
+                                    $is_end = ($cur_date == $e->end_date);
                                     $type_class = ($e->contact_email == 'manuale@calendario.local') ? 'event-manual' : 'event-request';
+                                    
+                                    $extra_classes = [];
+                                    if (!$is_start) $extra_classes[] = 'cont-prev';
+                                    if (!$is_end) $extra_classes[] = 'cont-next';
+                                    
+                                    $show_text = ($is_start || $d == 1 || $week_day_index == 1);
+                                    $text_style = $show_text ? '' : 'color:transparent;';
                                     ?>
                                     <div onclick="gcsEditEvent(<?php echo $e->id; ?>, '<?php echo esc_js($e->group_name); ?>', '<?php echo $e->start_date; ?>', '<?php echo $e->end_date; ?>')" 
-                                         class="event-bar <?php echo $type_class; ?>" 
+                                         class="event-bar <?php echo $type_class; ?> <?php echo implode(' ', $extra_classes); ?>" 
+                                         style="<?php echo $text_style; ?>"
                                          title="<?php echo esc_attr($e->group_name); ?>">
-                                        <?php if ($is_start || $d == 1 || $i == 0) echo esc_html($e->group_name); ?>
+                                        <?php echo esc_html($e->group_name); ?>
                                     </div>
                                     <?php
                                 }

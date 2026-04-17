@@ -139,9 +139,17 @@ class GCS_Calendar_Page {
                 transition: filter 0.2s; width: 100%; box-sizing: border-box; position:relative; z-index:1; font-weight: 600;
             }
             .gcs-admin-cal-event:hover { filter: brightness(1.1); z-index:2; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-            .gcs-admin-cal-event.cont-prev { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -5px; width: calc(100% + 5px); }
-            .gcs-admin-cal-event.cont-next { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: -5px; width: calc(100% + 5px); }
-            .gcs-admin-cal-event.cont-prev.cont-next { width: calc(100% + 10px); }
+            
+            .gcs-admin-cal-event.cont-prev {
+                border-top-left-radius: 0; border-bottom-left-radius: 0;
+                margin-left: -6px; width: calc(100% + 6px);
+                padding-left: 14px;
+            }
+            .gcs-admin-cal-event.cont-next {
+                border-top-right-radius: 0; border-bottom-right-radius: 0;
+                margin-right: -6px; width: calc(100% + 6px);
+            }
+            .gcs-admin-cal-event.cont-prev.cont-next { width: calc(100% + 12px); }
 
             .gcs-modal { display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center; }
             .gcs-modal-content { background:#fff; padding:30px; border-radius:16px; width:480px; max-width:95%; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
