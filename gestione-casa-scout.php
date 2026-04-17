@@ -26,7 +26,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/plugin-update-checker/plugi
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 $myUpdateChecker = PucFactory::buildUpdateChecker(
-	'https://github.com/lucamoni/gestione-casa-scout/',
+	'https://github.com/lucamoni/gestione-casa-scout',
 	__FILE__,
 	'gestione-casa-scout'
 );
