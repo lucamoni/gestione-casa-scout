@@ -67,6 +67,12 @@ class GCS_Admin_Page {
     }
 
     public static function render_admin_dashboard() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'gcs_requests';
+        $pending = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE status = 'pending' AND contact_email != 'manuale@calendario.local'");
+        $confirmed_month = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE status = 'confirmed' AND month(start_date) = %d", date('n')));
+        $total_active = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE status != 'rejected'");
+
         $active_tab = 'requests';
         if (isset($_GET['page'])) {
             if ($_GET['page'] === 'gcs-admin-calendar') $active_tab = 'calendar';
@@ -75,59 +81,85 @@ class GCS_Admin_Page {
 
         ?>
         <div class="wrap gcs-admin-dashboard" id="gcs_admin_wrapper">
-            <h1>Gestione Casa Scout <span style="font-size:12px; vertical-align:middle; background:#1a4581; color:#fff; padding:2px 8px; border-radius:10px; margin-left:10px;">v1.4.0</span></h1>
-            
-            <?php if ( isset( $_GET['message'] ) ) : ?>
-                <div class="notice notice-success is-dismissible">
-                    <p><?php echo $_GET['message'] == 'status_updated' ? 'Stato aggiornato.' : 'Richiesta eliminata.'; ?></p>
+            <style>
+                :root {
+                    --gcs-primary: #2d5a27;
+                    --gcs-secondary: #d4a373;
+                    --gcs-bg: #f0f2f5;
+                    --gcs-white: #ffffff;
+                    --gcs-text: #1e293b;
+                    --gcs-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+                }
+                .gcs-admin-dashboard { font-family: 'Inter', -apple-system, sans-serif; }
+                .gcs-admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; background: var(--gcs-white); padding: 20px 30px; border-radius: 12px; box-shadow: var(--gcs-shadow); }
+                .gcs-admin-header h1 { margin: 0 !important; color: var(--gcs-primary); font-weight: 800; font-size: 28px !important; }
+                .gcs-version { background: var(--gcs-primary); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 11px; vertical-align: middle; margin-left: 10px; }
+                
+                .gcs-admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+                .gcs-stat-item { background: var(--gcs-white); padding: 25px; border-radius: 12px; box-shadow: var(--gcs-shadow); border-left: 5px solid var(--gcs-primary); }
+                .gcs-stat-item.pending { border-left-color: #f59e0b; }
+                .gcs-stat-item.confirmed { border-left-color: #10b981; }
+                .gcs-stat-label { display: block; color: #64748b; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+                .gcs-stat-value { display: block; color: var(--gcs-text); font-size: 32px; font-weight: 800; margin-top: 5px; }
+
+                .gcs-nav-tabs { display: flex; gap: 10px; background: #e2e8f0; padding: 5px; border-radius: 12px; margin-bottom: 25px; width: fit-content; }
+                .gcs-nav-tab { padding: 10px 25px; text-decoration: none; color: #64748b; font-weight: 700; border-radius: 8px; transition: all 0.2s; border: none; cursor: pointer; background: transparent; }
+                .gcs-nav-tab.active { background: var(--gcs-white); color: var(--gcs-primary); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+                .gcs-nav-tab:hover:not(.active) { color: var(--gcs-text); }
+
+                .gcs-admin-card { background: var(--gcs-white); padding: 0; border-radius: 12px; box-shadow: var(--gcs-shadow); overflow: hidden; border: 1px solid #e2e8f0; }
+                
+                /* Custom table scrollbar */
+                .gcs-table-container { overflow-x: auto; }
+            </style>
+
+            <div class="gcs-admin-header">
+                <h1>Gestione Casa Scout <span class="gcs-version">v1.5.5</span></h1>
+                <div style="font-weight: 600; color: #64748b;">Pannello Scouter Pro</div>
+            </div>
+
+            <div class="gcs-admin-stats">
+                <div class="gcs-stat-item pending">
+                    <span class="gcs-stat-label">📩 Richieste Nuove</span>
+                    <span class="gcs-stat-value"><?php echo $pending; ?></span>
                 </div>
-            <?php endif; ?>
-            <h2 class="nav-tab-wrapper" style="margin-bottom: 20px;">
-                <a href="#" class="nav-tab <?php echo $active_tab == 'requests' ? 'nav-tab-active' : ''; ?>" onclick="gcsAdminTab('requests')">Richieste</a>
-                <a href="#" class="nav-tab <?php echo $active_tab == 'calendar' ? 'nav-tab-active' : ''; ?>" onclick="gcsAdminTab('calendar')">Calendario</a>
-                <a href="#" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>" onclick="gcsAdminTab('settings')">Impostazioni</a>
-            </h2>
+                <div class="gcs-stat-item confirmed">
+                    <span class="gcs-stat-label">📅 Confermate (Mese)</span>
+                    <span class="gcs-stat-value"><?php echo $confirmed_month; ?></span>
+                </div>
+                <div class="gcs-stat-item">
+                    <span class="gcs-stat-label">🏛️ Totale Impegni Attivi</span>
+                    <span class="gcs-stat-value"><?php echo $total_active; ?></span>
+                </div>
+            </div>
+
+            <div class="gcs-nav-tabs">
+                <button class="gcs-nav-tab <?php echo $active_tab == 'requests' ? 'active' : ''; ?>" onclick="gcsAdminTab('requests')">📦 Gestione Richieste</button>
+                <button class="gcs-nav-tab <?php echo $active_tab == 'calendar' ? 'active' : ''; ?>" onclick="gcsAdminTab('calendar')">📅 Dashboard Calendario</button>
+                <button class="gcs-nav-tab <?php echo $active_tab == 'settings' ? 'active' : ''; ?>" onclick="gcsAdminTab('settings')">⚙️ Configurazione</button>
+            </div>
 
             <div id="tab_requests" class="gcs-tab-content" style="<?php echo $active_tab == 'requests' ? '' : 'display:none;'; ?>">
-                <?php self::render_admin_page(); ?>
+                <div class="gcs-admin-card"><?php self::render_admin_page(); ?></div>
             </div>
             <div id="tab_calendar" class="gcs-tab-content" style="<?php echo $active_tab == 'calendar' ? '' : 'display:none;'; ?>">
-                <?php GCS_Calendar_Page::render_calendar_page(); ?>
+                <div class="gcs-admin-card"><?php GCS_Calendar_Page::render_calendar_page(); ?></div>
             </div>
             <div id="tab_settings" class="gcs-tab-content" style="<?php echo $active_tab == 'settings' ? '' : 'display:none;'; ?>">
-                <?php GCS_Settings_Page::render_settings_page(); ?>
+                <div class="gcs-admin-card"><?php GCS_Settings_Page::render_settings_page(); ?></div>
             </div>
 
             <script>
                 function gcsAdminTab(tab) {
                     jQuery('.gcs-tab-content').hide();
                     jQuery('#tab_' + tab).show();
-                    jQuery('.nav-tab').removeClass('nav-tab-active');
-                    jQuery('.nav-tab').each(function(){
-                        if(jQuery(this).text().toLowerCase().includes(tab === 'requests' ? 'richieste' : (tab === 'calendar' ? 'calendario' : 'impostazioni'))) {
-                            jQuery(this).addClass('nav-tab-active');
-                        }
-                    });
+                    jQuery('.gcs-nav-tab').removeClass('active');
+                    // Find button by text
+                    if (tab === 'requests') jQuery('.gcs-nav-tab:contains("Richieste")').addClass('active');
+                    if (tab === 'calendar') jQuery('.gcs-nav-tab:contains("Calendario")').addClass('active');
+                    if (tab === 'settings') jQuery('.gcs-nav-tab:contains("Configurazione")').addClass('active');
                 }
-
-                // AJAX for Admin status updates
-                jQuery(document).on('submit', '#gcs_admin_wrapper form', function(e) {
-                    var $form = jQuery(this);
-                    if ($form.attr('action') && $form.attr('action').includes('admin-post.php')) {
-                        e.preventDefault();
-                        var formData = $form.serialize();
-                        $form.css('opacity', '0.5');
-                        jQuery.post(ajaxurl.replace('admin-ajax.php', 'admin-post.php'), formData, function() {
-                            // Re-load only the requests part
-                            location.reload(); // Temporary simpler solution for admin
-                        });
-                    }
-                });
             </script>
-            <style>
-                #gcs_admin_wrapper .wrap { margin: 0; padding: 0; }
-                #gcs_admin_wrapper h1 { margin-bottom: 10px; }
-            </style>
         </div>
         <?php
     }
@@ -136,62 +168,84 @@ class GCS_Admin_Page {
         $requests = GCS_DB_Manager::get_requests();
         ?>
         <div class="gcs-requests-list">
-            <table class="wp-list-table widefat fixed striped table-view-list">
-                <thead>
-                    <tr>
-                        <th class="manage-column column-primary">Gruppo / Reparto</th>
-                        <th>Contatti</th>
-                        <th>Periodo Previsto</th>
-                        <th>Ospiti</th>
-                        <th style="width:120px;">Stato</th>
-                        <th style="width:200px;">Azioni Rapide</th>
-                    </tr>
-                </thead>
-                <tbody id="the-list">
-                    <?php if ( empty( $requests ) ) : ?>
-                        <tr class="no-items">
-                            <td class="colspanchange" colspan="6">Nessuna richiesta di prenotazione trovata.</td>
+            <style>
+                .gcs-admin-table { width: 100%; border-collapse: collapse; margin-top: 0; }
+                .gcs-admin-table th { background: #f8fafc; padding: 15px; text-align: left; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+                .gcs-admin-table td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+                .gcs-admin-table tr:hover { background: #f8fafc; }
+                
+                .admin-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
+                .admin-badge-pending { background: #fef3c7; color: #92400e; }
+                .admin-badge-confirmed { background: #dcfce7; color: #166534; }
+                .admin-badge-rejected { background: #fee2e2; color: #991b1b; }
+                
+                .admin-sync-tag { font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-top: 5px; display: inline-flex; align-items: center; gap: 3px; }
+                
+                .admin-action-select { padding: 5px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 12px; font-weight: 600; cursor: pointer; }
+                .admin-delete-btn { color: #ef4444; text-decoration: none; font-size: 18px; margin-left: 10px; cursor: pointer; transition: transform 0.2s; border:none; background:none; }
+                .admin-delete-btn:hover { transform: scale(1.2); }
+            </style>
+            <div class="gcs-table-container">
+                <table class="gcs-admin-table">
+                    <thead>
+                        <tr>
+                            <th>Gruppo / Contatto</th>
+                            <th>Dettagli Soggiorno</th>
+                            <th>Messaggio / Note</th>
+                            <th>Stato</th>
+                            <th style="width:180px; text-align:right;">Gestione</th>
                         </tr>
-                    <?php else : ?>
-                        <?php foreach ( $requests as $req ) : ?>
-                            <tr id="request-<?php echo esc_attr( $req->id ); ?>">
-                                <td class="title column-title column-primary">
-                                    <strong><?php echo esc_html( wp_unslash( $req->group_name ) ); ?></strong>
-                                    <div class="row-actions visible">Ricevuta il: <?php echo esc_html( date( 'd/m/Y H:i', strtotime( $req->created_at ) ) ); ?></div>
-                                </td>
-                                <td><?php echo esc_html( $req->contact_email ); ?></td>
-                                <td><?php echo esc_html( date( 'd/m/Y', strtotime( $req->start_date ) ) ); ?> - <?php echo esc_html( date( 'd/m/Y', strtotime( $req->end_date ) ) ); ?></td>
-                                <td><?php echo esc_html( $req->guests_count ); ?> pax</td>
-                                <td>
-                                    <?php 
-                                        $label = $req->status == 'confirmed' ? 'Confermata' : ($req->status == 'rejected' ? 'Rifiutata' : 'In attesa');
-                                        $color = $req->status == 'confirmed' ? '#46b450' : ($req->status == 'rejected' ? '#dc3232' : '#ffb900');
-                                    ?>
-                                    <span style="color:<?php echo $color; ?>; font-weight:bold;"><?php echo $label; ?></span>
-                                </td>
-                                <td>
-                                    <form method="POST" style="display:inline-block;">
-                                        <input type="hidden" name="gcs_admin_action" value="gcs_update_status">
-                                        <?php wp_nonce_field( 'gcs_update_status_' . $req->id ); ?>
-                                        <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
-                                        <select name="new_status" onchange="this.form.submit()" style="font-size:12px;">
-                                            <option value="pending" <?php selected($req->status, 'pending'); ?>>In attesa</option>
-                                            <option value="confirmed" <?php selected($req->status, 'confirmed'); ?>>Confermata</option>
-                                            <option value="rejected" <?php selected($req->status, 'rejected'); ?>>Rifiutata</option>
-                                        </select>
-                                    </form>
-                                    <form method="POST" style="display:inline-block;" onsubmit="return confirm('Sicuro?');">
-                                        <input type="hidden" name="gcs_admin_action" value="gcs_delete_request">
-                                        <?php wp_nonce_field( 'gcs_delete_request_' . $req->id ); ?>
-                                        <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
-                                        <button type="submit" class="button-link-delete" style="color:#a00; text-decoration:none; margin-left:10px;">Elimina</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php if ( empty( $requests ) ) : ?>
+                            <tr><td colspan="5" style="padding:50px; text-align:center; color:#64748b;">Nessuna richiesta trovata.</td></tr>
+                        <?php else : ?>
+                            <?php foreach ( $requests as $req ) : ?>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:700; color:var(--gcs-text);"><?php echo esc_html( wp_unslash( $req->group_name ) ); ?></div>
+                                        <div style="font-size:12px; color:#64748b;"><?php echo esc_html( $req->contact_email ); ?></div>
+                                        <div style="font-size:10px; color:#94a3b8; margin-top:3px;">ID: #<?php echo $req->id; ?> • Ricevuta: <?php echo date('d/m/y', strtotime($req->created_at)); ?></div>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight:600; font-size:13px;">📅 <?php echo date('d/m/Y', strtotime($req->start_date)); ?> - <?php echo date('d/m/Y', strtotime($req->end_date)); ?></div>
+                                        <div style="font-size:12px; color:var(--gcs-primary); font-weight:700;">👤 <?php echo esc_html( $req->guests_count ); ?> persone</div>
+                                    </td>
+                                    <td style="font-size:12px; color:#475569; max-width:250px;">
+                                        <?php echo !empty($req->message) ? esc_html(wp_trim_words($req->message, 15)) : '<em>Nessun messaggio</em>'; ?>
+                                    </td>
+                                    <td>
+                                        <span class="admin-badge admin-badge-<?php echo $req->status; ?>">
+                                            <?php echo $req->status == 'confirmed' ? 'Confermata' : ($req->status == 'rejected' ? 'Rifiutata' : 'In attesa'); ?>
+                                        </span>
+                                        <?php if($req->status == 'confirmed'): ?>
+                                            <br/><div class="admin-sync-tag">🔗 Sincronizzato con Calendario</div>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <form method="POST" style="display:inline-flex; align-items:center;">
+                                            <input type="hidden" name="gcs_admin_action" value="gcs_update_status">
+                                            <?php wp_nonce_field( 'gcs_update_status_' . $req->id ); ?>
+                                            <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                            <select name="new_status" onchange="this.form.submit()" class="admin-action-select">
+                                                <option value="pending" <?php selected($req->status, 'pending'); ?>>Cambia in: Attesa</option>
+                                                <option value="confirmed" <?php selected($req->status, 'confirmed'); ?>>Cambia in: Conferma</option>
+                                                <option value="rejected" <?php selected($req->status, 'rejected'); ?>>Cambia in: Rifiuta</option>
+                                            </select>
+                                        </form>
+                                        <form method="POST" style="display:inline-flex;" onsubmit="return confirm('Vuoi eliminare definitivamente questa richiesta?');">
+                                            <input type="hidden" name="gcs_admin_action" value="gcs_delete_request">
+                                            <?php wp_nonce_field( 'gcs_delete_request_' . $req->id ); ?>
+                                            <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                            <button type="submit" class="admin-delete-btn" title="Elimina definitivamente">🗑️</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <?php
     }

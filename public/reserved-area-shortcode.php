@@ -84,6 +84,8 @@ class GCS_Reserved_Area_Shortcode {
                         'contact_email' => 'manuale@calendario.local',
                         'start_date' => sanitize_text_field($_POST['event_start']),
                         'end_date' => sanitize_text_field($_POST['event_end']),
+                        'guests_count' => 0,
+                        'message' => 'Inserimento manuale',
                         'status' => 'confirmed'
                     ));
                 } elseif (isset($_POST['gcs_front_settings_save'])) {

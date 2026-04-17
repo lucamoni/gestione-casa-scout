@@ -74,9 +74,9 @@ class GCS_Calendar_Page {
         $pm = ($month == 1) ? 12 : $month - 1; $py = ($month == 1) ? $year - 1 : $year;
         $nm = ($month == 12) ? 1 : $month + 1; $ny = ($month == 12) ? $year + 1 : $year;
         echo '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">';
-        echo '<a href="?page=gcs-calendar&c_month='.$pm.'&c_year='.$py.'" class="button">&laquo; '.$months_names[$pm].'</a>';
+        echo '<a href="?page=gcs-admin-calendar&c_month='.$pm.'&c_year='.$py.'" class="button">&laquo; '.$months_names[$pm].'</a>';
         echo '<h2 style="margin:0; font-weight:700;">'.$months_names[$month].' '.$year.'</h2>';
-        echo '<a href="?page=gcs-calendar&c_month='.$nm.'&c_year='.$ny.'" class="button">'.$months_names[$nm].' &raquo;</a>';
+        echo '<a href="?page=gcs-admin-calendar&c_month='.$nm.'&c_year='.$ny.'" class="button">'.$months_names[$nm].' &raquo;</a>';
         echo '</div>';
         
         echo '<table style="width:100%; border-collapse:collapse; table-layout:fixed;"><thead><tr>';
