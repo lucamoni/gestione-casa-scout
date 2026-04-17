@@ -238,6 +238,9 @@ class GCS_Reserved_Area_Shortcode {
                             var formData = new FormData(form);
                             if (e.submitter && e.submitter.name) {
                                 formData.append(e.submitter.name, e.submitter.value || '1');
+                            } else if (submitBtn && submitBtn.name) {
+                                // Fallback for some browsers if submitter is missing but we found the button via querySelector (usually only if 1 button)
+                                formData.append(submitBtn.name, submitBtn.value || '1');
                             }
 
                             var activeTabBtn = document.querySelector('.gcs-tab-btn[style*="border-bottom-color: rgb(26, 69, 129)"]') 
@@ -464,11 +467,12 @@ class GCS_Reserved_Area_Shortcode {
         }
 
         if (isset($_POST['gcs_edit_event_action']) && wp_verify_nonce($_POST['gcs_edit_nonce'], 'edit_event_action')) {
+            $edit_id = intval($_POST['edit_id']);
             if (isset($_POST['gcs_delete_event_action'])) {
-                $wpdb->delete($table_name, array('id' => intval($_POST['edit_id'])));
+                $wpdb->delete($table_name, array('id' => $edit_id), array('%d'));
                 $message_html = '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; text-align:center; font-weight:bold;">Evento eliminato con successo.</div>';
-            } else {
-                GCS_DB_Manager::update_request(intval($_POST['edit_id']), array(
+            } elseif (isset($_POST['gcs_save_event_action']) || isset($_POST['edit_title'])) {
+                GCS_DB_Manager::update_request($edit_id, array(
                     'group_name' => sanitize_text_field($_POST['edit_title']),
                     'start_date' => sanitize_text_field($_POST['edit_start']),
                     'end_date' => sanitize_text_field($_POST['edit_end']),
@@ -654,8 +658,8 @@ class GCS_Reserved_Area_Shortcode {
                         <div style="display:flex; justify-content:space-between; align-items: center; border-top: 1px solid #f0f0f0; padding-top: 20px;">
                             <button type="button" onclick="document.getElementById('gcsFrontEditModal').style.display='none'" style="background: transparent; border: 1px solid #bbb; padding: 10px 15px; border-radius: 4px; cursor: pointer; color: #555; font-weight: bold; transition: background 0.3s;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='transparent'">Annulla</button>
                             <div style="display: flex; gap: 10px;">
-                                <button type="submit" name="gcs_delete_event_action" style="background: white; border: 1px solid #e74c3c; color: #e74c3c; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s;" onmouseover="this.style.background='#e74c3c'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='#e74c3c';" onclick="return confirm('Sei sicuro di voler rimuovere definitivamente questo evento?')">Elimina</button>
-                                <button type="submit" style="background: #1a4581; color: white; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s;" onmouseover="this.style.background='#133463'" onmouseout="this.style.background='#1a4581'">Salva Modifiche</button>
+                                <button type="submit" name="gcs_delete_event_action" value="1" style="background: white; border: 1px solid #e74c3c; color: #e74c3c; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s;" onmouseover="this.style.background='#e74c3c'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='#e74c3c';" onclick="return confirm('Sei sicuro di voler rimuovere definitivamente questo evento?')">Elimina</button>
+                                <button type="submit" name="gcs_save_event_action" value="1" style="background: #1a4581; color: white; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s;" onmouseover="this.style.background='#133463'" onmouseout="this.style.background='#1a4581'">Salva Modifiche</button>
                             </div>
                         </div>
                     </form>

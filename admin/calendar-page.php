@@ -10,6 +10,7 @@ class GCS_Calendar_Page {
         $month = isset($_GET['c_month']) ? intval($_GET['c_month']) : date('n');
         $year = isset($_GET['c_year']) ? intval($_GET['c_year']) : date('Y');
 
+        $message = '';
         // GESTIONE AZIONI (POST)
         if (isset($_POST['gcs_add_manual_event']) && wp_verify_nonce($_POST['gcs_nonce'], 'add_manual_event')) {
             $title = sanitize_text_field($_POST['event_title']);
@@ -25,20 +26,25 @@ class GCS_Calendar_Page {
                     'message' => 'Impegno inserito manualmente dal calendario.',
                     'status' => 'confirmed'
                 ));
+                $message = '<div class="notice notice-success is-dismissible"><p>Impegno aggiunto con successo.</p></div>';
             }
         }
 
         if (isset($_POST['gcs_edit_event_action']) && wp_verify_nonce($_POST['gcs_edit_nonce'], 'edit_event_action')) {
-            GCS_DB_Manager::update_request(intval($_POST['edit_id']), array(
-                'group_name' => sanitize_text_field($_POST['edit_title']),
-                'start_date' => sanitize_text_field($_POST['edit_start']),
-                'end_date' => sanitize_text_field($_POST['edit_end']),
-                'message' => sanitize_textarea_field($_POST['edit_message'])
-            ));
-        }
-
-        if (isset($_POST['gcs_delete_event_action']) && wp_verify_nonce($_POST['gcs_edit_nonce'], 'edit_event_action')) {
-            $wpdb->delete($table_name, array('id' => intval($_POST['edit_id'])));
+            $edit_id = intval($_POST['edit_id']);
+            
+            if (isset($_POST['gcs_delete_event_action'])) {
+                $wpdb->delete($table_name, array('id' => $edit_id), array('%d'));
+                $message = '<div class="notice notice-success is-dismissible"><p>Evento eliminato con successo.</p></div>';
+            } else {
+                GCS_DB_Manager::update_request($edit_id, array(
+                    'group_name' => sanitize_text_field($_POST['edit_title']),
+                    'start_date' => sanitize_text_field($_POST['edit_start']),
+                    'end_date' => sanitize_text_field($_POST['edit_end']),
+                    'message' => sanitize_textarea_field($_POST['edit_message'])
+                ));
+                $message = '<div class="notice notice-success is-dismissible"><p>Evento aggiornato con successo.</p></div>';
+            }
         }
 
         $start_date_month = sprintf("%04d-%02d-01", $year, $month);
@@ -51,6 +57,7 @@ class GCS_Calendar_Page {
         $months_names = array('', 'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre');
 
         echo '<div class="wrap"><h1 class="wp-heading-inline">Calendario Prenotazioni Casa Scout</h1><hr class="wp-header-end">';
+        echo $message;
         echo '<div style="display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start; margin-top:20px;">';
         
         // Colonna Calendario
@@ -161,7 +168,10 @@ class GCS_Calendar_Page {
                 document.getElementById('edit_message').value = msg;
                 document.getElementById('gcsEditModal').style.display = 'flex';
             }
-            window.onclick = function(event) { if (event.target == document.getElementById('gcsEditModal')) document.getElementById('gcsEditModal').style.display = 'none'; }
+            window.addEventListener('click', function(event) { 
+                var modal = document.getElementById('gcsEditModal');
+                if (event.target == modal) modal.style.display = 'none'; 
+            });
         </script>
         <?php
     }
