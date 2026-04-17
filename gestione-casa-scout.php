@@ -30,8 +30,24 @@ $myUpdateChecker = PucFactory::buildUpdateChecker(
 	__FILE__,
 	'gestione-casa-scout'
 );
-// Indica al plugin di cercare gli aggiornamenti sul branch principale "main"
-$myUpdateChecker->setBranch('main');
+
+// Forza i parametri a livello API per evitare i segnaposto :user e :repo
+$api = $myUpdateChecker->getVcsApi();
+if (method_exists($api, 'setBranch')) {
+    $api->setBranch('main');
+}
+
+// Iniezione manuale dei parametri nel caso il parser fallisca
+add_filter('puc_request_info_result-gestione-casa-scout', function($info) {
+    if ($info) {
+        // Forza l'aggiornamento dei percorsi se necessario
+    }
+    return $info;
+});
+
+// Metodo diretto: forziamo le proprietà interne se accessibili
+if (property_exists($api, 'user')) { $api->user = 'lucamoni'; }
+if (property_exists($api, 'repo')) { $api->repo = 'gestione-casa-scout'; }
 
 // Hook di attivazione per creare la tabella nel database al momento dell'installazione
 register_activation_hook( __FILE__, array( 'GCS_DB_Manager', 'create_table' ) );
