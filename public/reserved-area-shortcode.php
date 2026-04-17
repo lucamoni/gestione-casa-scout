@@ -133,12 +133,12 @@ class GCS_Reserved_Area_Shortcode {
             return ob_get_clean();
         }
 
+        global $wpdb;
         $tabs_style = 'padding: 10px 20px; text-decoration: none; font-weight: bold; margin-bottom: -2px; transition: color 0.3s; cursor: pointer;';
         
         $message_html = '';
 
         if (isset($_POST['gcs_edit_event_action']) && wp_verify_nonce($_POST['gcs_edit_nonce'], 'edit_event_action')) {
-            global $wpdb;
             $table_name = $wpdb->prefix . 'gcs_requests';
             $edit_id = isset($_POST['edit_id']) ? intval($_POST['edit_id']) : 0;
             $op = isset($_POST['gcs_event_op']) ? sanitize_text_field($_POST['gcs_event_op']) : 'save';
@@ -511,26 +511,8 @@ class GCS_Reserved_Area_Shortcode {
         ob_start();
         $message_html = '';
 
-        // GESTIONE AZIONI (POST)
-        if (isset($_POST['gcs_add_manual_event']) && wp_verify_nonce($_POST['gcs_nonce'], 'add_manual_event')) {
-            $title = sanitize_text_field($_POST['event_title']);
-            $start = sanitize_text_field($_POST['event_start']);
-            $end = sanitize_text_field($_POST['event_end']);
-            if ($title && $start && $end) {
-                GCS_DB_Manager::insert_request(array(
-                    'group_name' => $title,
-                    'contact_email' => 'manuale@calendario.local',
-                    'start_date' => $start,
-                    'end_date' => $end,
-                    'guests_count' => 0,
-                    'message' => 'Impegno inserito manualmente dal frontend.',
-                    'status' => 'confirmed'
-                ));
-                $message_html = '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; text-align:center; font-weight:bold;">Impegno aggiunto con successo.</div>';
-            }
-        }
-
-        // POST logic moved to render_reserved_area for centralization
+        // Handlers moved to render_reserved_area for centralized execution
+        
         $start_date_month = sprintf("%04d-%02d-01", $year, $month);
         $end_date_month = date("Y-m-t", strtotime($start_date_month));
         $events = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE status = 'confirmed' AND (start_date <= %s AND end_date >= %s) ORDER BY start_date ASC", $end_date_month, $start_date_month));
