@@ -97,8 +97,8 @@ class GCS_Admin_Page {
         global $wpdb;
         $table = $wpdb->prefix . 'gcs_requests';
         $pending = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE status = 'pending' AND contact_email != 'manuale@calendario.local'");
-        $confirmed_month = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE status = 'confirmed' AND month(start_date) = %d", date('n')));
-        $total_active = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE status != 'rejected'");
+        $confirmed_month = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE status = 'confirmed' AND month(start_date) = %d AND status != 'trash'", date('n')));
+        $total_active = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE status IN ('pending', 'confirmed') AND contact_email != 'manuale@calendario.local'");
 
         $active_tab = 'requests';
         if (isset($_GET['page'])) {
@@ -109,9 +109,10 @@ class GCS_Admin_Page {
         $message_html = '';
         if (isset($_GET['message'])) {
             $msg = sanitize_text_field($_GET['message']);
-            if ($msg == 'status_updated') $message_html = '<div class="notice notice-success is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>✅ Operazione completata con successo!</p></div>';
-            if ($msg == 'request_trashed') $message_html = '<div class="notice notice-warning is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>🗑️ Richiesta spostata nel Cestino. Puoi ancora recuperarla filtrando per "Cestino".</p></div>';
-            if ($msg == 'request_deleted') $message_html = '<div class="notice notice-success is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>🗑️ Richiesta eliminata definitivamente.</p></div>';
+            if ($msg == 'status_updated') $message_html = '<div class="notice notice-success is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>✅ Operazione completata!</p></div>';
+            if ($msg == 'request_trashed') $message_html = '<div class="notice notice-warning is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>🗑️ Spostata nel Cestino.</p></div>';
+            if ($msg == 'request_deleted') $message_html = '<div class="notice notice-success is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>💀 Eliminata definitivamente.</p></div>';
+            if ($msg == 'nonce_error') $message_html = '<div class="notice notice-error is-dismissible" style="margin: 20px 0; border-radius: 8px;"><p>❌ Errore di sicurezza. Riprova.</p></div>';
         }
 
         ?>
@@ -149,7 +150,7 @@ class GCS_Admin_Page {
             </style>
 
             <div class="gcs-admin-header">
-                <h1>Gestione Casa Scout <span class="gcs-version">v1.7.1</span></h1>
+                <h1>Gestione Casa Scout <span class="gcs-version">v1.7.2</span></h1>
             </div>
 
             <?php echo $message_html; ?>
@@ -297,37 +298,41 @@ class GCS_Admin_Page {
                                             <a href="#" onclick="gcsAdminTab('calendar'); return false;" style="font-size:10px; color:var(--gcs-primary); display:block; margin-top:5px; font-weight:700;">👁️ Visualizza nel Calendario</a>
                                         <?php endif; ?>
                                     </td>
-                                    <td style="text-align:right;">
+                                    <td style="text-align:right; white-space:nowrap;">
                                         <?php if ($req->status !== 'trash'): ?>
-                                            <form method="POST" style="display:inline-flex; align-items:center;">
-                                                <input type="hidden" name="gcs_admin_action" value="gcs_update_status">
-                                                <input type="hidden" name="gcs_admin_nonce" value="<?php echo wp_create_nonce('gcs_admin_dashboard_action'); ?>">
-                                                <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
-                                                <select name="new_status" onchange="this.form.submit()" class="admin-action-select">
-                                                    <option value="pending" <?php selected($req->status, 'pending'); ?>>Cambia in: Attesa</option>
-                                                    <option value="confirmed" <?php selected($req->status, 'confirmed'); ?>>Cambia in: Conferma</option>
-                                                    <option value="rejected" <?php selected($req->status, 'rejected'); ?>>Cambia in: Rifiuta</option>
-                                                </select>
-                                            </form>
-                                            <form method="POST" style="display:inline-flex;" onsubmit="return confirm('Spostare nel cestino questa richiesta?');">
-                                                <input type="hidden" name="gcs_admin_action" value="gcs_trash_request">
-                                                <input type="hidden" name="gcs_admin_nonce" value="<?php echo wp_create_nonce('gcs_admin_dashboard_action'); ?>">
-                                                <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
-                                                <button type="submit" class="admin-delete-btn" title="Sposta nel cestino">🗑️</button>
-                                            </form>
+                                            <div style="display:inline-flex; align-items:center; gap:5px;">
+                                                <form method="POST" style="margin:0;">
+                                                    <input type="hidden" name="gcs_admin_action" value="gcs_update_status">
+                                                    <?php wp_nonce_field('gcs_admin_dashboard_action', 'gcs_admin_nonce'); ?>
+                                                    <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                                    <select name="new_status" onchange="this.form.submit()" class="admin-action-select">
+                                                        <option value="pending" <?php selected($req->status, 'pending'); ?>>Attesa</option>
+                                                        <option value="confirmed" <?php selected($req->status, 'confirmed'); ?>>Conferma</option>
+                                                        <option value="rejected" <?php selected($req->status, 'rejected'); ?>>Rifiuta</option>
+                                                    </select>
+                                                </form>
+                                                <form method="POST" style="margin:0;" onsubmit="return confirm('Spostare nel cestino?');">
+                                                    <input type="hidden" name="gcs_admin_action" value="gcs_trash_request">
+                                                    <?php wp_nonce_field('gcs_admin_dashboard_action', 'gcs_admin_nonce'); ?>
+                                                    <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                                    <button type="submit" class="admin-delete-btn" title="Sposta nel cestino">🗑️</button>
+                                                </form>
+                                            </div>
                                         <?php else: ?>
-                                            <form method="POST" style="display:inline-flex;">
-                                                <input type="hidden" name="gcs_admin_action" value="gcs_restore_request">
-                                                <input type="hidden" name="gcs_admin_nonce" value="<?php echo wp_create_nonce('gcs_admin_dashboard_action'); ?>">
-                                                <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
-                                                <button type="submit" class="button button-secondary" style="font-size:10px;">Ripristina</button>
-                                            </form>
-                                            <form method="POST" style="display:inline-flex;" onsubmit="return confirm('ELIMINARE PER SEMPRE? Questa azione non è reversibile.');">
-                                                <input type="hidden" name="gcs_admin_action" value="gcs_delete_permanent">
-                                                <input type="hidden" name="gcs_admin_nonce" value="<?php echo wp_create_nonce('gcs_admin_dashboard_action'); ?>">
-                                                <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
-                                                <button type="submit" class="admin-delete-btn" style="color:#000;" title="Elimina definitivamente">💀</button>
-                                            </form>
+                                            <div style="display:inline-flex; align-items:center; gap:5px;">
+                                                <form method="POST" style="margin:0;">
+                                                    <input type="hidden" name="gcs_admin_action" value="gcs_restore_request">
+                                                    <?php wp_nonce_field('gcs_admin_dashboard_action', 'gcs_admin_nonce'); ?>
+                                                    <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                                    <button type="submit" class="button button-secondary" style="font-size:10px; padding:2px 8px; min-height:auto;">Ripristina</button>
+                                                </form>
+                                                <form method="POST" style="margin:0;" onsubmit="return confirm('ELIMINARE PER SEMPRE?');">
+                                                    <input type="hidden" name="gcs_admin_action" value="gcs_delete_permanent">
+                                                    <?php wp_nonce_field('gcs_admin_dashboard_action', 'gcs_admin_nonce'); ?>
+                                                    <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                                    <button type="submit" class="admin-delete-btn" style="color:#000;" title="Elimina definitivamente">💀</button>
+                                                </form>
+                                            </div>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
