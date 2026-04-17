@@ -28,25 +28,31 @@ use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 $myUpdateChecker = PucFactory::buildUpdateChecker(
 	'https://github.com/lucamoni/gestione-casa-scout',
 	__FILE__,
-	'gestione-casa-scout'
+	'gcs-plugin-updates' // Nuovo slug univoco per resettare la cache
 );
 
-// Forza la pulizia della cache degli aggiornamenti per resettare l'errore 404
+// Forza i parametri GitHub direttamente sull'oggetto API
+$api = $myUpdateChecker->getVcsApi();
+if ($api instanceof \YahnisElsts\PluginUpdateChecker\v5\Vcs\GitHubApi) {
+    $api->user = 'lucamoni';
+    $api->repo = 'gestione-casa-scout';
+}
+$myUpdateChecker->setBranch('main');
+
+// Forza la pulizia della cache ad ogni caricamento admin per questa sessione di debug
 add_action('admin_init', function() {
     delete_site_transient('update_plugins');
-    delete_transient('puc_update_check_gestione-casa-scout');
+    delete_transient('puc_update_check_gcs-plugin-updates');
 });
 
-// Intercetta e riscrive l'URL della richiesta se contiene ancora i segnaposto
+// Intercetta la richiesta HTTP e correggi l'URL se contiene ancora i segnaposto
 add_filter('pre_http_request', function($pre, $args, $url) {
-    if (strpos($url, ':user/:repo') !== false && strpos($url, 'api.github.com') !== false) {
+    if (strpos($url, 'api.github.com') !== false && strpos($url, ':user') !== false) {
         $url = str_replace(':user/:repo', 'lucamoni/gestione-casa-scout', $url);
         return wp_remote_request($url, $args);
     }
     return $pre;
-}, 10, 3);
-
-$myUpdateChecker->setBranch('main');
+}, 20, 3);
 
 // Inizializzazione di tutti i componenti alla corretta action di WordPress
 add_action( 'plugins_loaded', 'gcs_init_plugin' );
