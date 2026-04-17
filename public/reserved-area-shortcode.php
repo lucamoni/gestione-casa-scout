@@ -117,35 +117,27 @@ class GCS_Reserved_Area_Shortcode {
                     --gcs-primary-light: #2c6abf;
                     --gcs-secondary: #a1d1d0;
                     --gcs-bg: #f8fafc;
-                    --gcs-card-bg: rgba(255, 255, 255, 0.95);
+                    --gcs-card-bg: #ffffff;
                     --gcs-text: #1e293b;
                     --gcs-text-light: #64748b;
-                    --gcs-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+                    --gcs-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
                     --gcs-radius: 12px;
                 }
 
-                .gcs-dashboard-wrapper {
-                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, inherit;
-                    color: var(--gcs-text);
-                    background: var(--gcs-bg);
-                    padding: 20px;
-                    border-radius: var(--gcs-radius);
-                    box-shadow: var(--gcs-shadow);
-                }
+                .gcs-dashboard-wrapper { font-family: 'Inter', sans-serif; color: var(--gcs-text); background: var(--gcs-bg); padding: 20px; border-radius: var(--gcs-radius); }
+                .gcs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: #fff; padding: 15px 25px; border-radius: var(--gcs-radius); box-shadow: var(--gcs-shadow); }
+                .gcs-header h2 { margin: 0; font-size: 24px; font-weight: 800; color: var(--gcs-primary); }
+                
+                .gcs-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+                .gcs-stat-card { background: #fff; padding: 15px; border-radius: var(--gcs-radius); box-shadow: var(--gcs-shadow); display: flex; align-items: center; gap: 12px; border: 1px solid #e2e8f0; }
+                .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+                .stat-info { display: flex; flex-direction: column; }
+                .stat-label { font-size: 10px; font-weight: 700; color: var(--gcs-text-light); text-transform: uppercase; }
+                .stat-val { font-size: 18px; font-weight: 800; color: var(--gcs-primary); }
 
-                .gcs-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 30px;
-                    background: var(--gcs-card-bg);
-                    padding: 20px 30px;
-                    border-radius: var(--gcs-radius);
-                    backdrop-filter: blur(10px);
-                    border: 1px solid rgba(255,255,255,0.5);
-                }
-
-                .gcs-header h2 { margin: 0; font-size: 28px; font-weight: 800; color: var(--gcs-primary); }
+                .gcs-filter-bar { background: #fff; padding: 10px 15px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 10px; align-items: center; }
+                .gcs-filter-btn { padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; }
+                .gcs-filter-btn.active { background: var(--gcs-primary); color: #fff; border-color: var(--gcs-primary); }
                 .gcs-logout { 
                     text-decoration: none; 
                     background: #fee2e2; 
@@ -255,23 +247,32 @@ class GCS_Reserved_Area_Shortcode {
                 <a href="<?php echo esc_url(add_query_arg('gcs_logout', '1')); ?>" class="gcs-logout">Disconnetti</a>
             </div>
 
-            <div class="gcs-stats">
+            <div class="gcs-stats-grid">
                 <div class="gcs-stat-card">
-                    <span>Richieste in Attesa</span>
-                    <strong><?php echo $pending_count; ?></strong>
+                    <div class="stat-icon" style="background: #fff8eb; color: #b45309;">⏳</div>
+                    <div class="stat-info">
+                        <span class="stat-label">In Attesa</span>
+                        <span class="stat-val"><?php echo $pending_count; ?></span>
+                    </div>
                 </div>
                 <div class="gcs-stat-card">
-                    <span>Prenotazioni Confermate</span>
-                    <strong><?php echo $confirmed_count; ?></strong>
+                    <div class="stat-icon" style="background: #ecfdf5; color: #059669;">✅</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Confermate</span>
+                        <span class="stat-val"><?php echo $confirmed_count; ?></span>
+                    </div>
                 </div>
                 <div class="gcs-stat-card">
-                    <span>Email Notifiche</span>
-                    <strong><?php echo esc_html(get_option('gcs_notification_email', '-')); ?></strong>
+                    <div class="stat-icon" style="background: #e0f2fe; color: #1a4581;">⚡</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Impegni Attivi</span>
+                        <span class="stat-val"><?php echo ($pending_count + $confirmed_count); ?></span>
+                    </div>
                 </div>
             </div>
 
             <div class="gcs-tabs">
-                <button class="gcs-tab-btn active" id="btn_requests" onclick="gcsShowTab('requests')">📦 Richieste</button>
+                <button class="gcs-tab-btn active" id="btn_requests" onclick="gcsShowTab('requests')">📦 Gestione Richieste</button>
                 <button class="gcs-tab-btn" id="btn_calendar" onclick="gcsShowTab('calendar')">📅 Calendario</button>
                 <button class="gcs-tab-btn" id="btn_settings" onclick="gcsShowTab('settings')">⚙️ Impostazioni</button>
             </div>
@@ -361,9 +362,31 @@ class GCS_Reserved_Area_Shortcode {
     }
 
     private static function render_requests_management() {
-        $requests = GCS_DB_Manager::get_requests();
+        global $wpdb;
+        $table = $wpdb->prefix . 'gcs_requests';
+        
+        $filter = $_GET['status_filter'] ?? 'active';
+        $where = "WHERE contact_email != 'manuale@calendario.local'";
+        
+        if ($filter == 'active') {
+            $where .= " AND status NOT IN ('rejected')";
+        } elseif ($filter == 'rejected') {
+            $where .= " AND status = 'rejected'";
+        } elseif ($filter == 'confirmed') {
+            $where .= " AND status = 'confirmed'";
+        }
+        
+        $requests = $wpdb->get_results("SELECT * FROM $table $where ORDER BY created_at DESC");
+        
         ob_start(); ?>
-        <div class="gcs-card">
+        <div class="gcs-card" style="padding:0; overflow:hidden;">
+            <div class="gcs-filter-bar">
+                <span style="font-size:12px; font-weight:800; text-transform:uppercase; color:#94a3b8; margin-right:10px;">Filtra:</span>
+                <a href="?status_filter=active" class="gcs-filter-btn <?php echo $filter == 'active' ? 'active' : ''; ?>">⚡ Attive</a>
+                <a href="?status_filter=confirmed" class="gcs-filter-btn <?php echo $filter == 'confirmed' ? 'active' : ''; ?>">✅ Confermate</a>
+                <a href="?status_filter=rejected" class="gcs-filter-btn <?php echo $filter == 'rejected' ? 'active' : ''; ?>">❌ Rifiutate</a>
+                <a href="?status_filter=all" class="gcs-filter-btn <?php echo $filter == 'all' ? 'active' : ''; ?>">📋 Tutte</a>
+            </div>
             <table class="gcs-table">
                 <thead>
                     <tr>
@@ -375,7 +398,7 @@ class GCS_Reserved_Area_Shortcode {
                 </thead>
                 <tbody>
                     <?php if (empty($requests)): ?>
-                        <tr><td colspan="4" style="padding:40px; text-align:center; color:var(--gcs-text-light);">Nessuna richiesta da gestire.</td></tr>
+                        <tr><td colspan="4" style="padding:40px; text-align:center; color:var(--gcs-text-light);">Nessuna richiesta trovata.</td></tr>
                     <?php else: foreach ($requests as $r): ?>
                         <tr>
                             <td>
@@ -398,22 +421,27 @@ class GCS_Reserved_Area_Shortcode {
                                         else echo 'Rifiutata';
                                     ?>
                                 </span>
+                                <?php if($r->status === 'confirmed'): ?>
+                                    <div style="font-size:10px; color:var(--gcs-primary); font-weight:700; margin-top:5px;">🔗 Nel Calendario</div>
+                                <?php endif; ?>
                             </td>
                             <td style="text-align:right;">
-                                <form method="POST" style="display:inline-flex; gap:5px;">
-                                    <input type="hidden" name="request_id" value="<?php echo $r->id; ?>">
-                                    <input type="hidden" name="gcs_front_update_status" value="1">
-                                    
-                                    <?php if ($r->status !== 'confirmed'): ?>
-                                        <button type="button" name="status" value="confirmed" class="gcs-action-btn btn-approve" title="Conferma">✅ Approva</button>
-                                    <?php endif; ?>
-                                    
-                                    <?php if ($r->status !== 'rejected'): ?>
-                                        <button type="button" name="status" value="rejected" class="gcs-action-btn btn-reject" title="Rifiuta">❌ Rifiuta</button>
-                                    <?php endif; ?>
-                                    
-                                    <button type="button" name="gcs_front_delete_req" value="1" class="gcs-action-btn btn-delete" data-confirm="Vuoi davvero eliminare questa richiesta?" title="Elimina">🗑️</button>
-                                </form>
+                                <div style="display:inline-flex; align-items:center; gap:8px;">
+                                    <form method="POST" class="ajax-form" style="margin:0;">
+                                        <input type="hidden" name="request_id" value="<?php echo $r->id; ?>">
+                                        <input type="hidden" name="gcs_front_update_status" value="1">
+                                        <select name="status" onchange="this.form.submit()" style="padding:5px; border-radius:6px; font-size:12px; border:1px solid #e2e8f0; font-weight:600;">
+                                            <option value="pending" <?php selected($r->status, 'pending'); ?>>Attesa</option>
+                                            <option value="confirmed" <?php selected($r->status, 'confirmed'); ?>>Conferma</option>
+                                            <option value="rejected" <?php selected($r->status, 'rejected'); ?>>Rifiuta</option>
+                                        </select>
+                                    </form>
+                                    <form method="POST" class="ajax-form" style="margin:0;">
+                                        <input type="hidden" name="request_id" value="<?php echo $r->id; ?>">
+                                        <input type="hidden" name="gcs_front_delete_req" value="1">
+                                        <button type="submit" onclick="return confirm('Eliminare definitivamente?')" style="background:none; border:none; color:#ef4444; font-size:18px; cursor:pointer;" title="Elimina">🗑️</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; endif; ?>
