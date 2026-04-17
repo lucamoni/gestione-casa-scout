@@ -17,33 +17,34 @@ class GCS_Admin_Page {
             'Casa Scout',
             'manage_options',
             'gestione-casa-scout',
-            array( __CLASS__, 'render_admin_page' ),
+            array( __CLASS__, 'render_admin_dashboard' ),
             'dashicons-building',
             26
         );
         add_submenu_page(
             'gestione-casa-scout',
             'Richieste Form',
-            'Richieste Form',
+            'Richieste',
             'manage_options',
             'gestione-casa-scout',
-            array( __CLASS__, 'render_admin_page' )
+            array( __CLASS__, 'render_admin_dashboard' )
         );
+        // We keep aliases for legacy links but they will all show the dashboard
         add_submenu_page(
             'gestione-casa-scout',
             'Calendario',
             'Calendario',
             'manage_options',
-            'gcs-calendar',
-            array( 'GCS_Calendar_Page', 'render_calendar_page' )
+            'gcs-admin-calendar',
+            array( __CLASS__, 'render_admin_dashboard' )
         );
         add_submenu_page(
             'gestione-casa-scout',
-            'Impostazioni Form',
+            'Impostazioni',
             'Impostazioni',
             'manage_options',
-            'gcs-settings',
-            array( 'GCS_Settings_Page', 'render_settings_page' )
+            'gcs-admin-settings',
+            array( __CLASS__, 'render_admin_dashboard' )
         );
     }
 
@@ -54,30 +55,79 @@ class GCS_Admin_Page {
         // Qui si possono aggiungere CSS/JS per l'admin se necessario.
     }
 
+    public static function render_admin_dashboard() {
+        $active_tab = 'requests';
+        if (isset($_GET['page'])) {
+            if ($_GET['page'] === 'gcs-admin-calendar') $active_tab = 'calendar';
+            if ($_GET['page'] === 'gcs-admin-settings') $active_tab = 'settings';
+        }
+        
+        // Handle POSTs for Requests (AJAX or regular)
+        if (isset($_POST['action']) && $_POST['action'] === 'gcs_update_status') {
+            self::handle_status_update();
+        }
+        if (isset($_POST['action']) && $_POST['action'] === 'gcs_delete_request') {
+            self::handle_request_deletion();
+        }
+
+        ?>
+        <div class="wrap gcs-admin-dashboard" id="gcs_admin_wrapper">
+            <h1>Gestione Casa Scout <span style="font-size:12px; vertical-align:middle; background:#1a4581; color:#fff; padding:2px 8px; border-radius:10px; margin-left:10px;">v1.3.9</span></h1>
+            
+            <h2 class="nav-tab-wrapper" style="margin-bottom: 20px;">
+                <a href="#" class="nav-tab <?php echo $active_tab == 'requests' ? 'nav-tab-active' : ''; ?>" onclick="gcsAdminTab('requests')">Richieste</a>
+                <a href="#" class="nav-tab <?php echo $active_tab == 'calendar' ? 'nav-tab-active' : ''; ?>" onclick="gcsAdminTab('calendar')">Calendario</a>
+                <a href="#" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>" onclick="gcsAdminTab('settings')">Impostazioni</a>
+            </h2>
+
+            <div id="tab_requests" class="gcs-tab-content" style="<?php echo $active_tab == 'requests' ? '' : 'display:none;'; ?>">
+                <?php self::render_admin_page(); ?>
+            </div>
+            <div id="tab_calendar" class="gcs-tab-content" style="<?php echo $active_tab == 'calendar' ? '' : 'display:none;'; ?>">
+                <?php GCS_Calendar_Page::render_calendar_page(); ?>
+            </div>
+            <div id="tab_settings" class="gcs-tab-content" style="<?php echo $active_tab == 'settings' ? '' : 'display:none;'; ?>">
+                <?php GCS_Settings_Page::render_settings_page(); ?>
+            </div>
+
+            <script>
+                function gcsAdminTab(tab) {
+                    jQuery('.gcs-tab-content').hide();
+                    jQuery('#tab_' + tab).show();
+                    jQuery('.nav-tab').removeClass('nav-tab-active');
+                    jQuery('.nav-tab').each(function(){
+                        if(jQuery(this).text().toLowerCase().includes(tab === 'requests' ? 'richieste' : (tab === 'calendar' ? 'calendario' : 'impostazioni'))) {
+                            jQuery(this).addClass('nav-tab-active');
+                        }
+                    });
+                }
+
+                // AJAX for Admin status updates
+                jQuery(document).on('submit', '#gcs_admin_wrapper form', function(e) {
+                    var $form = jQuery(this);
+                    if ($form.attr('action') && $form.attr('action').includes('admin-post.php')) {
+                        e.preventDefault();
+                        var formData = $form.serialize();
+                        $form.css('opacity', '0.5');
+                        jQuery.post(ajaxurl.replace('admin-ajax.php', 'admin-post.php'), formData, function() {
+                            // Re-load only the requests part
+                            location.reload(); // Temporary simpler solution for admin
+                        });
+                    }
+                });
+            </script>
+            <style>
+                #gcs_admin_wrapper .wrap { margin: 0; padding: 0; }
+                #gcs_admin_wrapper h1 { margin-bottom: 10px; }
+            </style>
+        </div>
+        <?php
+    }
+
     public static function render_admin_page() {
         $requests = GCS_DB_Manager::get_requests();
         ?>
-        <div class="wrap">
-            <h1 class="wp-heading-inline">Gestione Prenotazioni Casa Scout</h1>
-            <hr class="wp-header-end">
-            
-            <?php if ( isset( $_GET['message'] ) ) : ?>
-                <?php if ( $_GET['message'] == 'status_updated' ) : ?>
-                    <div class="notice notice-success is-dismissible">
-                        <p>Stato della prenotazione aggiornato con successo.</p>
-                    </div>
-                <?php elseif ( $_GET['message'] == 'request_deleted' ) : ?>
-                    <div class="notice notice-info is-dismissible">
-                        <p>La richiesta è stata eliminata. Note: Elimina solo dopo aver confermato un annullamento.</p>
-                    </div>
-                <?php endif; ?>
-            <?php endif; ?>
-
-            <!-- Filtro Rapido per stato -->
-            <ul class="subsubsub">
-                <li class="all"><a href="?page=gestione-casa-scout" class="current">Tutte le richieste</a></li>
-            </ul>
-
+        <div class="gcs-requests-list">
             <table class="wp-list-table widefat fixed striped table-view-list">
                 <thead>
                     <tr>
@@ -92,98 +142,44 @@ class GCS_Admin_Page {
                 <tbody id="the-list">
                     <?php if ( empty( $requests ) ) : ?>
                         <tr class="no-items">
-                            <td class="colspanchange" colspan="6">Nessuna richiesta di prenotazione trovata al momento.</td>
+                            <td class="colspanchange" colspan="6">Nessuna richiesta di prenotazione trovata.</td>
                         </tr>
                     <?php else : ?>
                         <?php foreach ( $requests as $req ) : ?>
                             <tr id="request-<?php echo esc_attr( $req->id ); ?>">
-                                <td class="title column-title has-row-actions column-primary">
+                                <td class="title column-title column-primary">
                                     <strong><?php echo esc_html( wp_unslash( $req->group_name ) ); ?></strong>
-                                    <div class="row-actions visible">
-                                        Ricevuta il: <?php echo esc_html( date( 'd/m/Y H:i', strtotime( $req->created_at ) ) ); ?>
-                                    </div>
-                                    <button type="button" class="toggle-row"><span class="screen-reader-text">Mostra più dettagli</span></button>
+                                    <div class="row-actions visible">Ricevuta il: <?php echo esc_html( date( 'd/m/Y H:i', strtotime( $req->created_at ) ) ); ?></div>
                                 </td>
-                                
-                                <td class="column-contacts" data-colname="Contatti">
-                                    <a href="mailto:<?php echo esc_attr( wp_unslash( $req->contact_email ) ); ?>"><?php echo esc_html( wp_unslash( $req->contact_email ) ); ?></a>
-                                    
-                                    <?php
-                                    $webmail_url = get_option('gcs_webmail_url', 'http://mail.assdonrenato.it');
-                                    if ($webmail_url) :
-                                    ?>
-                                    <div style="margin-top:8px;">
-                                        <a href="<?php echo esc_url($webmail_url); ?>" target="_blank" class="button button-small" style="font-size:11px; padding:0 8px; border-radius:3px; text-decoration:none;">Apri Webmail 🌐</a>
-                                    </div>
-                                    <?php endif; ?>
-                                    
-                                </td>
-                                
-                                <td class="column-date" data-colname="Periodo">
-                                    Da: <strong><?php echo esc_html( date( 'd/m/Y', strtotime( $req->start_date ) ) ); ?></strong><br>
-                                    A: <strong><?php echo esc_html( date( 'd/m/Y', strtotime( $req->end_date ) ) ); ?></strong>
-                                </td>
-                                
-                                <td class="column-guests" data-colname="Ospiti">
-                                    <?php echo esc_html( $req->guests_count ); ?> pax
-                                </td>
-                                
-                                <td class="column-status" data-colname="Stato">
+                                <td><?php echo esc_html( $req->contact_email ); ?></td>
+                                <td><?php echo esc_html( date( 'd/m/Y', strtotime( $req->start_date ) ) ); ?> - <?php echo esc_html( date( 'd/m/Y', strtotime( $req->end_date ) ) ); ?></td>
+                                <td><?php echo esc_html( $req->guests_count ); ?> pax</td>
+                                <td>
                                     <?php 
-                                        $bg_color = '#f0f0f1';
-                                        $text_color = '#3c434a';
-                                        $label = ucfirst(esc_html($req->status));
-                                        
-                                        if ( $req->status === 'confirmed' ) {
-                                            $bg_color = '#edfaeb';
-                                            $text_color = '#007017';
-                                            $label = 'Confermata';
-                                        } elseif ( $req->status === 'rejected' ) {
-                                            $bg_color = '#fcf0f1';
-                                            $text_color = '#d63638';
-                                            $label = 'Rifiutata';
-                                        } elseif ( $req->status === 'pending' ) {
-                                            $bg_color = '#fef8ee';
-                                            $text_color = '#b32d2e';
-                                            $label = 'In Attesa';
-                                        }
+                                        $label = $req->status == 'confirmed' ? 'Confermata' : ($req->status == 'rejected' ? 'Rifiutata' : 'In attesa');
+                                        $color = $req->status == 'confirmed' ? '#46b450' : ($req->status == 'rejected' ? '#dc3232' : '#ffb900');
                                     ?>
-                                    <span style="display:inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 11px; background-color: <?php echo esc_attr($bg_color); ?>; color: <?php echo esc_attr($text_color); ?>;">
-                                        <?php echo esc_html( $label ); ?>
-                                    </span>
+                                    <span style="color:<?php echo $color; ?>; font-weight:bold;"><?php echo $label; ?></span>
                                 </td>
-
-                                <td class="column-actions" data-colname="Azioni Rapide">
-                                    <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST" style="display: flex; gap: 5px;">
+                                <td>
+                                    <form method="POST" style="display:inline-block;">
                                         <input type="hidden" name="action" value="gcs_update_status">
                                         <?php wp_nonce_field( 'gcs_update_status_' . $req->id ); ?>
-                                        <input type="hidden" name="request_id" value="<?php echo esc_attr( $req->id ); ?>">
-                                        
-                                        <select name="new_status" style="max-width: 110px;">
-                                            <option value="pending" <?php selected( $req->status, 'pending' ); ?>>In Attesa</option>
-                                            <option value="confirmed" <?php selected( $req->status, 'confirmed' ); ?>>Confermata</option>
-                                            <option value="rejected" <?php selected( $req->status, 'rejected' ); ?>>Rifiutata</option>
+                                        <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                        <select name="new_status" onchange="this.form.submit()" style="font-size:12px;">
+                                            <option value="pending" <?php selected($req->status, 'pending'); ?>>In attesa</option>
+                                            <option value="confirmed" <?php selected($req->status, 'confirmed'); ?>>Confermata</option>
+                                            <option value="rejected" <?php selected($req->status, 'rejected'); ?>>Rifiutata</option>
                                         </select>
-                                        
-                                        <button type="submit" class="button button-small action">Salva</button>
                                     </form>
-                                    
-                                    <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST" style="margin-top: 5px;" onsubmit="return confirm('Sei sicuro di voler eliminare questa richiesta? L\'azione è irreversibile.');">
+                                    <form method="POST" style="display:inline-block;" onsubmit="return confirm('Sicuro?');">
                                         <input type="hidden" name="action" value="gcs_delete_request">
                                         <?php wp_nonce_field( 'gcs_delete_request_' . $req->id ); ?>
-                                        <input type="hidden" name="request_id" value="<?php echo esc_attr( $req->id ); ?>">
-                                        <button type="submit" class="button-link-delete" style="color: #d63638; text-decoration: none; font-size: 13px;">Elimina Richiesta</button>
+                                        <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                        <button type="submit" class="button-link-delete" style="color:#a00; text-decoration:none; margin-left:10px;">Elimina</button>
                                     </form>
                                 </td>
                             </tr>
-                            <?php if ( ! empty( $req->message ) ) : ?>
-                            <tr style="background: transparent;">
-                                <td colspan="6" style="padding: 15px 20px; border-top: none; background-color: #fdfdfd; font-style: italic;">
-                                    <strong>Messaggio lasciato dall'utente:</strong><br/>
-                                    <?php echo nl2br( esc_html( wp_unslash( $req->message ) ) ); ?>
-                                </td>
-                            </tr>
-                            <?php endif; ?>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </tbody>
@@ -193,41 +189,28 @@ class GCS_Admin_Page {
     }
 
     public static function handle_status_update() {
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_die( 'Accesso non autorizzato.' );
-        }
-
+        if ( ! current_user_can( 'manage_options' ) ) wp_die();
         $request_id = intval( $_POST['request_id'] ?? 0 );
-        if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'gcs_update_status_' . $request_id ) ) {
-            wp_die( 'Azione non valida.' );
-        }
-
+        if ( ! wp_verify_nonce( $_POST['_wpnonce'] ?? '', 'gcs_update_status_' . $request_id ) ) wp_die();
         $new_status = sanitize_text_field( $_POST['new_status'] ?? 'pending' );
-        if ( in_array( $new_status, array( 'pending', 'confirmed', 'rejected' ) ) ) {
-            GCS_DB_Manager::update_status( $request_id, $new_status );
+        GCS_DB_Manager::update_status( $request_id, $new_status );
+        
+        if (!defined('DOING_AJAX')) {
+            wp_safe_redirect(admin_url('admin.php?page=gestione-casa-scout&message=status_updated'));
+            exit;
         }
-
-        $redirect_url = add_query_arg( array( 'page' => 'gestione-casa-scout', 'message' => 'status_updated' ), admin_url( 'admin.php' ) );
-        wp_safe_redirect( $redirect_url );
-        exit;
     }
 
     public static function handle_request_deletion() {
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_die( 'Accesso non autorizzato.' );
-        }
-
+        if ( ! current_user_can( 'manage_options' ) ) wp_die();
         $request_id = intval( $_POST['request_id'] ?? 0 );
-        if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'gcs_delete_request_' . $request_id ) ) {
-            wp_die( 'Azione non valida.' );
-        }
-
+        if ( ! wp_verify_nonce( $_POST['_wpnonce'] ?? '', 'gcs_delete_request_' . $request_id ) ) wp_die();
         global $wpdb;
-        $table_name = $wpdb->prefix . 'gcs_requests';
-        $wpdb->delete( $table_name, array( 'id' => $request_id ), array( '%d' ) );
-
-        $redirect_url = add_query_arg( array( 'page' => 'gestione-casa-scout', 'message' => 'request_deleted' ), admin_url( 'admin.php' ) );
-        wp_safe_redirect( $redirect_url );
-        exit;
+        $wpdb->delete( $wpdb->prefix . 'gcs_requests', array( 'id' => $request_id ) );
+        
+        if (!defined('DOING_AJAX')) {
+            wp_safe_redirect(admin_url('admin.php?page=gestione-casa-scout&message=request_deleted'));
+            exit;
+        }
     }
 }

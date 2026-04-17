@@ -381,23 +381,25 @@ class GCS_Reserved_Area_Shortcode {
                                 </td>
 
                                 <td style="padding:15px; vertical-align:top;">
-                                    <form method="POST" style="margin-bottom:10px;">
-                                        <input type="hidden" name="gcs_front_update_status" value="1">
-                                        <?php wp_nonce_field('front_status', 'gcs_front_nonce'); ?>
-                                        <input type="hidden" name="request_id" value="<?php echo esc_attr( $req->id ); ?>">
-                                        <select name="new_status" style="width:100%; border:1px solid #ccc; padding:6px; border-radius:4px; margin-bottom:5px; font-size:13px;">
-                                            <option value="pending" <?php selected( $req->status, 'pending' ); ?>>In Attesa</option>
-                                            <option value="confirmed" <?php selected( $req->status, 'confirmed' ); ?>>Confermata</option>
-                                            <option value="rejected" <?php selected( $req->status, 'rejected' ); ?>>Rifiutata</option>
-                                        </select>
-                                        <button type="submit" style="width:100%; background:#1a4581; color:#fff; border:none; padding:6px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px;">Aggiorna</button>
-                                    </form>
-                                    <form method="POST" onsubmit="return confirm('Sei sicuro di voler eliminare questa richiesta? L\'azione è irreversibile.');">
-                                        <input type="hidden" name="gcs_front_delete_req" value="1">
-                                        <?php wp_nonce_field('front_status', 'gcs_front_nonce'); ?>
-                                        <input type="hidden" name="request_id" value="<?php echo esc_attr( $req->id ); ?>">
-                                        <button type="submit" style="width:100%; background:#fff; color:#e74c3c; border:1px solid #e74c3c; padding:6px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px; transition:all 0.3s;" onmouseover="this.style.background='#e74c3c'; this.style.color='#fff';" onmouseout="this.style.background='#fff'; this.style.color='#e74c3c';">Elimina</button>
-                                    </form>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <form method="POST" style="display:inline;" class="gcs-ajax-form">
+                                            <?php wp_nonce_field('front_status', 'gcs_front_nonce'); ?>
+                                            <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                            <input type="hidden" name="gcs_front_update_status" value="1">
+                                            <select name="status" onchange="this.form.dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}))" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 13px;">
+                                                <option value="pending" <?php selected($req->status, 'pending'); ?>>In attesa</option>
+                                                <option value="confirmed" <?php selected($req->status, 'confirmed'); ?>>Confermata</option>
+                                                <option value="rejected" <?php selected($req->status, 'rejected'); ?>>Rifiutata</option>
+                                            </select>
+                                        </form>
+
+                                        <form method="POST" style="display:inline;" class="gcs-ajax-form">
+                                            <?php wp_nonce_field('front_status', 'gcs_front_nonce'); ?>
+                                            <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                            <input type="hidden" name="gcs_front_delete_req" value="1">
+                                            <button type="submit" style="background:none; border:none; color:#e74c3c; cursor:pointer; font-size:13px; text-decoration:underline;" onclick="return confirm('Sei sicuro di voler eliminare questa richiesta?')">Elimina</button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
