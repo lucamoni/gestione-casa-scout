@@ -92,8 +92,8 @@ class GCS_Admin_Page {
         <div class="wrap gcs-admin-dashboard" id="gcs_admin_wrapper">
             <style>
                 :root {
-                    --gcs-primary: #2d5a27;
-                    --gcs-secondary: #d4a373;
+                    --gcs-primary: #1a4581;
+                    --gcs-secondary: #a1d1d0;
                     --gcs-bg: #f0f2f5;
                     --gcs-white: #ffffff;
                     --gcs-text: #1e293b;
@@ -123,7 +123,7 @@ class GCS_Admin_Page {
             </style>
 
             <div class="gcs-admin-header">
-                <h1>Gestione Casa Scout <span class="gcs-version">v1.6.2</span></h1>
+                <h1>Gestione Casa Scout <span class="gcs-version">v1.7.0</span></h1>
                 <div style="font-weight: 600; color: #64748b;">Pannello Scouter Pro</div>
             </div>
 
@@ -190,7 +190,7 @@ class GCS_Admin_Page {
                 .admin-badge-confirmed { background: #dcfce7; color: #166534; }
                 .admin-badge-rejected { background: #fee2e2; color: #991b1b; }
                 
-                .admin-sync-tag { font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-top: 5px; display: inline-flex; align-items: center; gap: 3px; }
+                .admin-sync-tag { font-size: 10px; background: #e0f2fe; color: #1a4581; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-top: 5px; display: inline-flex; align-items: center; gap: 3px; }
                 
                 .admin-action-select { padding: 5px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 12px; font-weight: 600; cursor: pointer; }
                 .admin-delete-btn { color: #ef4444; text-decoration: none; font-size: 18px; margin-left: 10px; cursor: pointer; transition: transform 0.2s; border:none; background:none; }

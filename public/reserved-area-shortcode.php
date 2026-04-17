@@ -113,9 +113,9 @@ class GCS_Reserved_Area_Shortcode {
         <div class="gcs-dashboard-wrapper">
             <style>
                 :root {
-                    --gcs-primary: #2d5a27;
-                    --gcs-primary-light: #4a7c44;
-                    --gcs-secondary: #d4a373;
+                    --gcs-primary: #1a4581;
+                    --gcs-primary-light: #2c6abf;
+                    --gcs-secondary: #a1d1d0;
                     --gcs-bg: #f8fafc;
                     --gcs-card-bg: rgba(255, 255, 255, 0.95);
                     --gcs-text: #1e293b;

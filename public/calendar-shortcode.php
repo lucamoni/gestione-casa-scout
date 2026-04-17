@@ -25,9 +25,9 @@ class GCS_Calendar_Shortcode {
         <div class="gcs-calendar-wrapper" id="gcs-calendar-ajax-wrapper" style="position:relative;">
             <style>
                 :root {
-                    --gcs-primary: #2d5a27;
-                    --gcs-primary-dark: #1b3a18;
-                    --gcs-accent: #d4a373;
+                    --gcs-primary: #1a4581;
+                    --gcs-primary-dark: #0d264a;
+                    --gcs-accent: #a1d1d0;
                     --gcs-bg: #f8fafc;
                     --gcs-card: #ffffff;
                     --gcs-text: #1e293b;
