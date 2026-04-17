@@ -159,6 +159,20 @@ class GCS_Reserved_Area_Shortcode {
             }
         }
 
+        if (isset($_POST['gcs_front_update_status']) && wp_verify_nonce($_POST['gcs_front_nonce'], 'front_status')) {
+            $request_id = intval($_POST['request_id']);
+            $new_status = sanitize_text_field($_POST['status']);
+            GCS_DB_Manager::update_status($request_id, $new_status);
+            $message_html = '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; text-align:center; font-weight:bold;">Stato aggiornato con successo.</div>';
+        }
+
+        if (isset($_POST['gcs_front_delete_req']) && wp_verify_nonce($_POST['gcs_front_nonce'], 'front_status')) {
+            $request_id = intval($_POST['request_id']);
+            global $wpdb;
+            $wpdb->delete($wpdb->prefix . 'gcs_requests', array('id' => $request_id));
+            $message_html = '<div style="background:#d4edda; color:#155724; padding:15px; border-radius:4px; margin-bottom:20px; text-align:center; font-weight:bold;">Richiesta eliminata.</div>';
+        }
+
         if (isset($_POST['gcs_front_add_manual']) && wp_verify_nonce($_POST['gcs_nonce'], 'add_manual_event')) {
             global $wpdb;
             $table_name = $wpdb->prefix . 'gcs_requests';

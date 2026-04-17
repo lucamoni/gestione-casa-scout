@@ -6,8 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class GCS_Admin_Page {
     public static function init() {
         add_action( 'admin_menu', array( __CLASS__, 'add_admin_menu' ) );
-        add_action( 'admin_post_gcs_update_status', array( __CLASS__, 'handle_status_update' ) );
-        add_action( 'admin_post_gcs_delete_request', array( __CLASS__, 'handle_request_deletion' ) );
+        add_action( 'admin_init', array( __CLASS__, 'handle_admin_posts' ) );
         add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_scripts' ) );
     }
 
@@ -55,25 +54,34 @@ class GCS_Admin_Page {
         // Qui si possono aggiungere CSS/JS per l'admin se necessario.
     }
 
+    public static function handle_admin_posts() {
+        if (!isset($_POST['gcs_admin_action'])) return;
+        if (!current_user_can('manage_options')) return;
+
+        if ($_POST['gcs_admin_action'] === 'gcs_update_status') {
+            self::handle_status_update();
+        }
+        if ($_POST['gcs_admin_action'] === 'gcs_delete_request') {
+            self::handle_request_deletion();
+        }
+    }
+
     public static function render_admin_dashboard() {
         $active_tab = 'requests';
         if (isset($_GET['page'])) {
             if ($_GET['page'] === 'gcs-admin-calendar') $active_tab = 'calendar';
             if ($_GET['page'] === 'gcs-admin-settings') $active_tab = 'settings';
         }
-        
-        // Handle POSTs for Requests (AJAX or regular)
-        if (isset($_POST['action']) && $_POST['action'] === 'gcs_update_status') {
-            self::handle_status_update();
-        }
-        if (isset($_POST['action']) && $_POST['action'] === 'gcs_delete_request') {
-            self::handle_request_deletion();
-        }
 
         ?>
         <div class="wrap gcs-admin-dashboard" id="gcs_admin_wrapper">
-            <h1>Gestione Casa Scout <span style="font-size:12px; vertical-align:middle; background:#1a4581; color:#fff; padding:2px 8px; border-radius:10px; margin-left:10px;">v1.3.9</span></h1>
+            <h1>Gestione Casa Scout <span style="font-size:12px; vertical-align:middle; background:#1a4581; color:#fff; padding:2px 8px; border-radius:10px; margin-left:10px;">v1.4.0</span></h1>
             
+            <?php if ( isset( $_GET['message'] ) ) : ?>
+                <div class="notice notice-success is-dismissible">
+                    <p><?php echo $_GET['message'] == 'status_updated' ? 'Stato aggiornato.' : 'Richiesta eliminata.'; ?></p>
+                </div>
+            <?php endif; ?>
             <h2 class="nav-tab-wrapper" style="margin-bottom: 20px;">
                 <a href="#" class="nav-tab <?php echo $active_tab == 'requests' ? 'nav-tab-active' : ''; ?>" onclick="gcsAdminTab('requests')">Richieste</a>
                 <a href="#" class="nav-tab <?php echo $active_tab == 'calendar' ? 'nav-tab-active' : ''; ?>" onclick="gcsAdminTab('calendar')">Calendario</a>
@@ -163,7 +171,7 @@ class GCS_Admin_Page {
                                 </td>
                                 <td>
                                     <form method="POST" style="display:inline-block;">
-                                        <input type="hidden" name="action" value="gcs_update_status">
+                                        <input type="hidden" name="gcs_admin_action" value="gcs_update_status">
                                         <?php wp_nonce_field( 'gcs_update_status_' . $req->id ); ?>
                                         <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
                                         <select name="new_status" onchange="this.form.submit()" style="font-size:12px;">
@@ -173,7 +181,7 @@ class GCS_Admin_Page {
                                         </select>
                                     </form>
                                     <form method="POST" style="display:inline-block;" onsubmit="return confirm('Sicuro?');">
-                                        <input type="hidden" name="action" value="gcs_delete_request">
+                                        <input type="hidden" name="gcs_admin_action" value="gcs_delete_request">
                                         <?php wp_nonce_field( 'gcs_delete_request_' . $req->id ); ?>
                                         <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
                                         <button type="submit" class="button-link-delete" style="color:#a00; text-decoration:none; margin-left:10px;">Elimina</button>
