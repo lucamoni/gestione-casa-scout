@@ -9,6 +9,13 @@ class GCS_Reserved_Area_Shortcode {
     public static function init() {
         add_shortcode( 'gcs_reserved_area', array( __CLASS__, 'render_reserved_area' ) );
         add_action( 'template_redirect', array( __CLASS__, 'handle_actions' ) );
+        add_action( 'wp_ajax_gcs_fetch_calendar', array( __CLASS__, 'ajax_fetch_calendar' ) );
+    }
+
+    public static function ajax_fetch_calendar() {
+        if (!self::is_authorized()) wp_die('Unauthorized');
+        echo self::render_calendar_management();
+        wp_die();
     }
 
     private static function is_authorized() {
@@ -256,14 +263,14 @@ class GCS_Reserved_Area_Shortcode {
                     </div>
                 </div>
                 <div class="gcs-stat-card">
-                    <div class="stat-icon" style="background: #ecfdf5; color: #059669;">✅</div>
+                    <div class="stat-icon" style="background: #ecfdf5; color: #059669;">&check;</div>
                     <div class="stat-info">
                         <span class="stat-label">Confermate</span>
                         <span class="stat-val"><?php echo $confirmed_count; ?></span>
                     </div>
                 </div>
                 <div class="gcs-stat-card">
-                    <div class="stat-icon" style="background: #e0f2fe; color: #1a4581;">⚡</div>
+                    <div class="stat-icon" style="background: #e0f2fe; color: #1a4581;">&bull;</div>
                     <div class="stat-info">
                         <span class="stat-label">Impegni Attivi</span>
                         <span class="stat-val"><?php echo ($pending_count + $confirmed_count); ?></span>
@@ -272,13 +279,17 @@ class GCS_Reserved_Area_Shortcode {
             </div>
 
             <div class="gcs-tabs">
-                <button class="gcs-tab-btn active" id="btn_requests" onclick="gcsShowTab('requests')">📦 Gestione Richieste</button>
-                <button class="gcs-tab-btn" id="btn_calendar" onclick="gcsShowTab('calendar')">📅 Calendario</button>
-                <button class="gcs-tab-btn" id="btn_settings" onclick="gcsShowTab('settings')">⚙️ Impostazioni</button>
+                <button class="gcs-tab-btn active" id="btn_requests" onclick="gcsShowTab('requests')">Richieste</button>
+                <button class="gcs-tab-btn" id="btn_calendar" onclick="gcsShowTab('calendar')">Calendario</button>
+                <button class="gcs-tab-btn" id="btn_settings" onclick="gcsShowTab('settings')">Impostazioni</button>
             </div>
 
             <div id="tab_requests" class="gcs-tab-content"><?php echo self::render_requests_management(); ?></div>
-            <div id="tab_calendar" class="gcs-tab-content" style="display:none;"><?php echo self::render_calendar_management(); ?></div>
+            <div id="tab_calendar" class="gcs-tab-content" style="display:none;">
+                <div id="gcs-calendar-ajax-container">
+                    <?php echo self::render_calendar_management(); ?>
+                </div>
+            </div>
             <div id="tab_settings" class="gcs-tab-content" style="display:none;"><?php echo self::render_settings_management(); ?></div>
 
             <div id="gcsEditModal" class="gcs-modal">
@@ -319,40 +330,58 @@ class GCS_Reserved_Area_Shortcode {
                 document.getElementById('gcsEditModal').style.display = 'flex';
             }
             function bindAjaxForms() {
-                // Intercettiamo i bottoni di azione nelle richieste
-                document.querySelectorAll('.gcs-action-btn').forEach(btn => {
-                   btn.onclick = function(e) {
-                       if (this.dataset.confirm && !confirm(this.dataset.confirm)) return;
-                       
-                       let form = this.closest('form');
-                       let formData = new FormData(form);
-                       if (this.name) formData.append(this.name, this.value);
+                document.querySelectorAll('.ajax-form').forEach(form => {
+                    form.onsubmit = function(e) {
+                        e.preventDefault();
+                        const formData = new FormData(this);
+                        const container = this.closest('.gcs-tab-content');
+                        if (container) container.style.opacity = '0.5';
 
-                       // Effetto loading visuale
-                       let row = this.closest('tr');
-                       if (row) row.style.opacity = '0.5';
+                        fetch(window.location.href, {
+                            method: 'POST',
+                            body: formData,
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        })
+                        .then(() => fetch(window.location.href))
+                        .then(r => r.text())
+                        .then(html => {
+                            const doc = new DOMParser().parseFromString(html, 'text/html');
+                            document.getElementById('tab_requests').innerHTML = doc.getElementById('tab_requests').innerHTML;
+                            document.getElementById('gcs-calendar-ajax-container').innerHTML = doc.getElementById('gcs-calendar-ajax-container').innerHTML;
+                            if (container) container.style.opacity = '1';
+                            bindAjaxForms();
+                        });
+                    };
 
-                       fetch(window.location.href, { 
-                           method: 'POST', 
-                           body: formData, 
-                           headers: { 'X-Requested-With': 'XMLHttpRequest' } 
-                       })
-                       .then(r => fetch(window.location.href)) // Ricarica i dati
-                       .then(r => r.text())
-                       .then(html => {
-                           let doc = new DOMParser().parseFromString(html, 'text/html');
-                           document.getElementById('tab_requests').innerHTML = doc.getElementById('tab_requests').innerHTML;
-                           document.getElementById('tab_calendar').innerHTML = doc.getElementById('tab_calendar').innerHTML;
-                           // Aggiorna anche i contatori se possibile
-                           let newWrapper = doc.querySelector('.gcs-dashboard-wrapper');
-                           if (newWrapper) {
-                               document.querySelector('.gcs-stats').innerHTML = newWrapper.querySelector('.gcs-stats').innerHTML;
-                           }
-                           bindAjaxForms();
-                       });
-                   };
+                    // Handle auto-submit selects
+                    const sel = form.querySelector('select[onchange]');
+                    if (sel) {
+                        sel.removeAttribute('onchange');
+                        sel.addEventListener('change', () => form.dispatchEvent(new Event('submit')));
+                    }
                 });
             }
+
+            function gcsNavigateCalendar(month, year) {
+                const container = document.getElementById('gcs-calendar-ajax-container');
+                container.style.opacity = '0.5';
+                
+                const formData = new FormData();
+                formData.append('action', 'gcs_fetch_calendar');
+                formData.append('c_month', month);
+                formData.append('c_year', year);
+
+                fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(html => {
+                    container.innerHTML = html;
+                    container.style.opacity = '1';
+                });
+            }
+
             document.addEventListener('DOMContentLoaded', bindAjaxForms);
             </script>
         </div>
@@ -381,10 +410,10 @@ class GCS_Reserved_Area_Shortcode {
         <div class="gcs-card" style="padding:0; overflow:hidden;">
             <div class="gcs-filter-bar">
                 <span style="font-size:12px; font-weight:800; text-transform:uppercase; color:#94a3b8; margin-right:10px;">Filtra:</span>
-                <a href="?status_filter=active" class="gcs-filter-btn <?php echo $filter == 'active' ? 'active' : ''; ?>">⚡ Attive</a>
-                <a href="?status_filter=confirmed" class="gcs-filter-btn <?php echo $filter == 'confirmed' ? 'active' : ''; ?>">✅ Confermate</a>
-                <a href="?status_filter=rejected" class="gcs-filter-btn <?php echo $filter == 'rejected' ? 'active' : ''; ?>">❌ Rifiutate</a>
-                <a href="?status_filter=all" class="gcs-filter-btn <?php echo $filter == 'all' ? 'active' : ''; ?>">📋 Tutte</a>
+                <a href="?status_filter=active" class="gcs-filter-btn <?php echo $filter == 'active' ? 'active' : ''; ?>">Attive</a>
+                <a href="?status_filter=confirmed" class="gcs-filter-btn <?php echo $filter == 'confirmed' ? 'active' : ''; ?>">Confermate</a>
+                <a href="?status_filter=rejected" class="gcs-filter-btn <?php echo $filter == 'rejected' ? 'active' : ''; ?>">Rifiutate</a>
+                <a href="?status_filter=all" class="gcs-filter-btn <?php echo $filter == 'all' ? 'active' : ''; ?>">Tutte</a>
             </div>
             <table class="gcs-table">
                 <thead>
@@ -448,8 +477,10 @@ class GCS_Reserved_Area_Shortcode {
     private static function render_calendar_management() {
         global $wpdb;
         $table = $wpdb->prefix . 'gcs_requests';
-        $m = isset($_GET['c_month']) ? intval($_GET['c_month']) : date('n');
-        $y = isset($_GET['c_year']) ? intval($_GET['c_year']) : date('Y');
+        
+        $m = isset($_REQUEST['c_month']) ? intval($_REQUEST['c_month']) : date('n');
+        $y = isset($_REQUEST['c_year']) ? intval($_REQUEST['c_year']) : date('Y');
+        
         $start_of_month = sprintf("%04d-%02d-01", $y, $m);
         $end_of_month = date("Y-m-t", strtotime($start_of_month));
         
@@ -463,12 +494,18 @@ class GCS_Reserved_Area_Shortcode {
         $months = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
         
         ob_start(); ?>
-        <div style="display:grid; grid-template-columns: 2.5fr 1fr; gap:25px; align-items: start;">
-            <div class="gcs-card">
+        <div style="display:grid; grid-template-columns: 2.5fr 1fr; gap:25px; align-items: start;" class="gcs-calendar-wrapper">
+            <div class="gcs-card" style="padding:0; overflow:hidden;">
                 <div class="cal-nav">
-                    <a href="?c_month=<?php echo $m==1?12:$m-1; ?>&c_year=<?php echo $m==1?$y-1:$y; ?>#tab_calendar" style="text-decoration:none; font-size:20px;">⬅️</a>
-                    <h3><?php echo $months[$m-1] . ' ' . $y; ?></h3>
-                    <a href="?c_month=<?php echo $m==12?1:$m+1; ?>&c_year=<?php echo $m==12?$y+1:$y; ?>#tab_calendar" style="text-decoration:none; font-size:20px;">➡️</a>
+                    <?php 
+                    $p_m = ($m == 1) ? 12 : $m - 1;
+                    $p_y = ($m == 1) ? $y - 1 : $y;
+                    $n_m = ($m == 12) ? 1 : $m + 1;
+                    $n_y = ($m == 12) ? $y + 1 : $y;
+                    ?>
+                    <button onclick="gcsNavigateCalendar(<?php echo $p_m; ?>, <?php echo $p_y; ?>)" class="gcs-filter-btn">&larr; Prec</button>
+                    <h3 style="margin:0;"><?php echo $months[$m-1] . ' ' . $y; ?></h3>
+                    <button onclick="gcsNavigateCalendar(<?php echo $n_m; ?>, <?php echo $n_y; ?>)" class="gcs-filter-btn">Succ &rarr;</button>
                 </div>
                 <div class="cal-grid">
                     <?php foreach(['LUN','MAR','MER','GIO','VEN','SAB','DOM'] as $d) echo '<div class="cal-day-header">'.$d.'</div>'; ?>
