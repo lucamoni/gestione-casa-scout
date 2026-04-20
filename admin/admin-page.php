@@ -137,7 +137,7 @@ class GCS_Admin_Page {
             </style>
 
             <div class="gcs-admin-header">
-                <h1>Gestione Casa Scout <span class="gcs-version">v1.8.4</span></h1>
+                <h1>Gestione Casa Scout <span class="gcs-version">v1.8.5</span></h1>
             </div>
 
             <?php echo $message_html; ?>
@@ -296,7 +296,7 @@ class GCS_Admin_Page {
                                                 <input type="hidden" name="gcs_admin_action" value="gcs_delete_request">
                                                 <?php wp_nonce_field('gcs_admin_dashboard_action', 'gcs_admin_nonce'); ?>
                                                 <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
-                                                <button type="submit" class="admin-delete-btn" title="Elimina definitivamente">🗑️</button>
+                                                <button type="submit" class="admin-delete-btn" style="background:#fff; color:#d63638; border:1px solid #d63638; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;" title="Elimina definitivamente">Elimina</button>
                                             </form>
                                             <?php endif; ?>
                                         </div>

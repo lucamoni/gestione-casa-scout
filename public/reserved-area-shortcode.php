@@ -132,6 +132,22 @@ class GCS_Reserved_Area_Shortcode {
                 }
 
                 .gcs-dashboard-wrapper { font-family: 'Inter', sans-serif; color: var(--gcs-text); background: var(--gcs-bg); padding: 20px; border-radius: var(--gcs-radius); }
+                
+                /* Custom Confirm Modal */
+                #gcsConfirmModal {
+                    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+                    z-index: 9999; align-items: center; justify-content: center;
+                }
+                .gcs-confirm-content {
+                    background: #fff; padding: 30px; border-radius: 16px; max-width: 380px; width: 90%;
+                    text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                }
+                .gcs-confirm-content h3 { margin: 0 0 10px; color: #1a4581; font-weight: 800; }
+                .gcs-confirm-content p { color: #64748b; font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
+                .gcs-confirm-actions { display: flex; gap: 10px; justify-content: center; }
+                .btn-cancel { background: #f1f5f9; color: #64748b; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+                .btn-confirm-del { background: #ef4444; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
                 .gcs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: #fff; padding: 15px 25px; border-radius: var(--gcs-radius); box-shadow: var(--gcs-shadow); }
                 .gcs-header h2 { margin: 0; font-size: 24px; font-weight: 800; color: var(--gcs-primary); }
                 
@@ -292,10 +308,22 @@ class GCS_Reserved_Area_Shortcode {
             </div>
             <div id="tab_settings" class="gcs-tab-content" style="display:none;"><?php echo self::render_settings_management(); ?></div>
 
+            <!-- Global Confirm Modal -->
+            <div id="gcsConfirmModal">
+                <div class="gcs-confirm-content">
+                    <h3>Sei sicuro?</h3>
+                    <p id="gcsConfirmText">Questa azione non può essere annullata.</p>
+                    <div class="gcs-confirm-actions">
+                        <button class="btn-cancel" onclick="closeGcsConfirm()">Annulla</button>
+                        <button id="gcsConfirmExec" class="btn-confirm-del">Sì, procedi</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="gcsEditModal" class="gcs-modal">
                 <div class="gcs-modal-content">
-                    <h3 style="margin-top:0; font-size:20px;">Modifica Evento</h3>
-                    <form method="POST">
+                    <h3 style="margin-top:0; font-size:20px;">Dettaglio Impegno</h3>
+                    <form method="POST" id="gcs-calendar-edit-form" class="ajax-form">
                         <input type="hidden" name="gcs_edit_event_action" value="1">
                         <input type="hidden" name="edit_id" id="edit_id">
                         <input type="hidden" name="gcs_event_op" id="event_op" value="save">
@@ -308,7 +336,7 @@ class GCS_Reserved_Area_Shortcode {
                             <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Fine</label><input type="date" name="edit_end" id="edit_end" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></div>
                         </div>
                         <div style="display:flex; justify-content:space-between; gap:10px;">
-                            <button type="submit" onclick="document.getElementById('event_op').value='delete'; return confirm('Eliminare definitivamente questo impegno?');" style="background:#fff; color:#ef4444; border:1px solid #ef4444; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer;">Elimina</button>
+                            <button type="button" onclick="openGcsConfirm('Eliminare definitivamente questo impegno?', () => document.getElementById('gcs-calendar-edit-form').requestSubmit())" style="background:#fff; color:#ef4444; border:1px solid #ef4444; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer;">Elimina</button>
                             <button type="submit" style="background:var(--gcs-primary); color:#fff; border:none; padding:10px 25px; border-radius:8px; font-weight:700; cursor:pointer;">Salva Modifiche</button>
                         </div>
                         <button type="button" onclick="document.getElementById('gcsEditModal').style.display='none'" style="display:block; width:100%; margin-top:15px; background:none; border:none; color:var(--gcs-text-light); cursor:pointer; font-size:13px;">Annulla</button>
@@ -330,6 +358,20 @@ class GCS_Reserved_Area_Shortcode {
                 document.getElementById('edit_end').value = end;
                 document.getElementById('gcsEditModal').style.display = 'flex';
             }
+
+            let gcsConfirmCallback = null;
+            function openGcsConfirm(text, callback) {
+                document.getElementById('gcsConfirmText').innerText = text;
+                gcsConfirmCallback = callback;
+                document.getElementById('gcsConfirmModal').style.display = 'flex';
+            }
+            function closeGcsConfirm() {
+                document.getElementById('gcsConfirmModal').style.display = 'none';
+            }
+            document.getElementById('gcsConfirmExec').onclick = function() {
+                if(gcsConfirmCallback) gcsConfirmCallback();
+                closeGcsConfirm();
+            };
             function bindAjaxForms() {
                 document.querySelectorAll('.ajax-form').forEach(form => {
                     form.onsubmit = function(e) {
@@ -436,10 +478,10 @@ class GCS_Reserved_Area_Shortcode {
                             </td>
                             <td>
                                 <div style="font-size:13px; font-weight:600;">
-                                    📅 <?php echo date('d/m/Y', strtotime($r->start_date)); ?> - <?php echo date('d/m/Y', strtotime($r->end_date)); ?>
+                                    <?php echo date('d/m/Y', strtotime($r->start_date)); ?> - <?php echo date('d/m/Y', strtotime($r->end_date)); ?>
                                 </div>
                                 <div style="font-size:12px; color:var(--gcs-primary); font-weight:700;">
-                                    👤 <?php echo esc_html($r->guests_count); ?> persone
+                                    <?php echo esc_html($r->guests_count); ?> persone
                                 </div>
                             </td>
                             <td>
@@ -451,7 +493,7 @@ class GCS_Reserved_Area_Shortcode {
                                     ?>
                                 </span>
                                 <?php if($r->status === 'confirmed'): ?>
-                                    <div style="font-size:10px; color:var(--gcs-primary); font-weight:700; margin-top:5px;">🔗 Nel Calendario</div>
+                                    <div style="font-size:10px; color:var(--gcs-primary); font-weight:700; margin-top:5px;">Nel Calendario</div>
                                 <?php endif; ?>
                             </td>
                             <td style="text-align:right;">
@@ -466,10 +508,10 @@ class GCS_Reserved_Area_Shortcode {
                                         </select>
                                     </form>
                                     <?php if ($r->status === 'rejected'): ?>
-                                    <form method="POST" class="ajax-form" style="margin:0;">
+                                    <form method="POST" class="ajax-form" id="req-del-form-<?php echo $r->id; ?>" style="margin:0;">
                                         <input type="hidden" name="request_id" value="<?php echo $r->id; ?>">
                                         <input type="hidden" name="gcs_front_delete_req" value="1">
-                                        <button type="submit" onclick="return confirm('Eliminare definitivamente?')" style="background:none; border:none; color:#ef4444; font-size:18px; cursor:pointer;" title="Elimina">🗑️</button>
+                                        <button type="button" onclick="openGcsConfirm('Eliminare definitivamente questa richiesta?', () => document.getElementById('req-del-form-<?php echo $r->id; ?>').requestSubmit())" style="background:#fff1f2; color:#ef4444; border:1px solid #fecaca; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Elimina</button>
                                     </form>
                                     <?php endif; ?>
                                 </div>
@@ -561,7 +603,7 @@ class GCS_Reserved_Area_Shortcode {
             </div>
 
             <div class="gcs-card" style="padding:25px;">
-                <h4 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:20px;">➕ Nuovo Impegno</h4>
+                <h4 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:20px;">Nuovo Impegno</h4>
                 <form method="POST">
                     <input type="hidden" name="gcs_front_add_manual" value="1">
                     <div style="margin-bottom:15px;">
