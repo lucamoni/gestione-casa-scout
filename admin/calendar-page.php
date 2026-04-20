@@ -209,15 +209,7 @@ class GCS_Calendar_Page {
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:25px;">
                     <button type="button" onclick="document.getElementById('gcsEditModal').style.display='none'" class="button">Annulla</button>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <div id="gcs_admin_delete_confirm" style="display:none; background:#fff1f0; border:1px solid #ffa39e; padding:8px 15px; border-radius:8px; text-align:center; position:absolute; bottom:80px; right:30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); z-index:10;">
-                            <p style="margin:0 0 10px; color:#d63638; font-weight:bold; font-size:12px;">Eliminare definitivamente?</p>
-                            <button type="submit" class="button" style="background:#d63638; color:#fff; border:none; font-weight:700;" onclick="document.getElementById('gcs_admin_event_op').value='delete';">Si, elimina</button>
-                            <button type="button" class="button" onclick="document.getElementById('gcs_admin_delete_confirm').style.display='none'; document.getElementById('gcs_admin_delete_trigger').style.display='inline-block';">No</button>
-                        </div>
-                        <button type="button" class="button button-link-delete" style="color:#d63638;" id="gcs_admin_delete_trigger" onclick="document.getElementById('gcs_admin_delete_confirm').style.display='block'; this.style.display='none';">🗑️</button>
-                        <button type="submit" class="button button-primary" style="height:40px; padding:0 30px; font-weight:700;" onclick="document.getElementById('gcs_admin_event_op').value='save';">Salva Modifiche</button>
-                    </div>
+                    <button type="submit" class="button button-primary" style="height:40px; padding:0 30px; font-weight:700;" onclick="document.getElementById('gcs_admin_event_op').value='save';">Salva Modifiche</button>
                 </div>
             </form>
         </div></div>

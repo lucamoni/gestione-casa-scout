@@ -296,8 +296,7 @@ class GCS_Reserved_Area_Shortcode {
                             <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Inizio</label><input type="date" name="edit_start" id="edit_start" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></div>
                             <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Fine</label><input type="date" name="edit_end" id="edit_end" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></div>
                         </div>
-                        <div style="display:flex; justify-content:space-between; gap:10px;">
-                            <button type="submit" onclick="document.getElementById('event_op').value='delete'; return confirm('Sei sicuro di voler eliminare questo evento?');" style="background:#fff; color:#ef4444; border:1px solid #ef4444; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer;">Elimina</button>
+                        <div style="display:flex; justify-content:flex-end; gap:10px;">
                             <button type="submit" style="background:var(--gcs-primary); color:#fff; border:none; padding:10px 25px; border-radius:8px; font-weight:700; cursor:pointer;">Salva Modifiche</button>
                         </div>
                         <button type="button" onclick="document.getElementById('gcsEditModal').style.display='none'" style="display:block; width:100%; margin-top:15px; background:none; border:none; color:var(--gcs-text-light); cursor:pointer; font-size:13px;">Annulla</button>
@@ -431,15 +430,10 @@ class GCS_Reserved_Area_Shortcode {
                                         <input type="hidden" name="request_id" value="<?php echo $r->id; ?>">
                                         <input type="hidden" name="gcs_front_update_status" value="1">
                                         <select name="status" onchange="this.form.submit()" style="padding:5px; border-radius:6px; font-size:12px; border:1px solid #e2e8f0; font-weight:600;">
-                                            <option value="pending" <?php selected($r->status, 'pending'); ?>>Attesa</option>
-                                            <option value="confirmed" <?php selected($r->status, 'confirmed'); ?>>Conferma</option>
-                                            <option value="rejected" <?php selected($r->status, 'rejected'); ?>>Rifiuta</option>
+                                            <option value="pending" <?php selected($r->status, 'pending'); ?>>Cambia in: Attesa</option>
+                                            <option value="confirmed" <?php selected($r->status, 'confirmed'); ?>>Cambia in: Conferma</option>
+                                            <option value="rejected" <?php selected($r->status, 'rejected'); ?>>Cambia in: Rifiuta</option>
                                         </select>
-                                    </form>
-                                    <form method="POST" class="ajax-form" style="margin:0;">
-                                        <input type="hidden" name="request_id" value="<?php echo $r->id; ?>">
-                                        <input type="hidden" name="gcs_front_delete_req" value="1">
-                                        <button type="submit" onclick="return confirm('Eliminare definitivamente?')" style="background:none; border:none; color:#ef4444; font-size:18px; cursor:pointer;" title="Elimina">🗑️</button>
                                     </form>
                                 </div>
                             </td>
@@ -575,12 +569,13 @@ class GCS_Reserved_Area_Shortcode {
         <div class="gcs-dashboard-wrapper" style="max-width:400px; margin:60px auto; padding:40px;">
             <style>
                 .login-title { text-align: center; margin-bottom: 30px; }
-                .login-title h2 { margin:0; color: #2d5a27; font-size: 24px; }
-                .login-title p { color: #64748b; font-size: 14px; margin-top:5px; }
-                .login-input { width:100%; padding:12px; margin-bottom:15px; border:1px solid #e2e8f0; border-radius:8px; outline:none; transition: border 0.2s; }
-                .login-input:focus { border-color: #2d5a27; }
-                .login-btn { width:100%; background:#2d5a27; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; cursor:pointer; }
-                .error-msg { background:#fee2e2; color:#b91c1c; padding:10px; border-radius:8px; margin-bottom:20px; font-size:13px; text-align:center; }
+                .login-title h2 { margin:0; color: #1a4581; font-size: 24px; font-weight: 800; }
+                .login-title p { color: #64748b; font-size: 14px; margin-top:5px; font-weight: 600; }
+                .login-input { width:100%; padding:12px; margin-bottom:15px; border:1px solid #e2e8f0; border-radius:8px; outline:none; transition: all 0.2s; box-sizing: border-box; }
+                .login-input:focus { border-color: #1a4581; box-shadow: 0 0 0 3px rgba(26, 69, 129, 0.1); }
+                .login-btn { width:100%; background:#1a4581; color:#fff; border:none; padding:14px; border-radius:8px; font-weight: 700; cursor:pointer; font-size:15px; transition: all 0.2s; }
+                .login-btn:hover { background: #0d264a; transform: translateY(-1px); }
+                .error-msg { background:#fee2e2; color:#b91c1c; padding:12px; border-radius:8px; margin-bottom:20px; font-size:13px; text-align:center; font-weight: 600; border: 1px solid #fecaca; }
             </style>
             
             <div class="login-title">
