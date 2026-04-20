@@ -355,7 +355,7 @@ class GCS_Calendar_Shortcode {
                                 if (!$show_text) $classes[] = 'event-hidden-text';
 
                                 echo '<div class="' . implode(' ', $classes) . '" title="Occupato dal ' . date('d/m', strtotime($de->start_date)) . ' al ' . date('d/m', strtotime($de->end_date)) . '">';
-                                echo esc_html($de->group_name);
+                                echo 'Occupato';
                                 echo '</div>';
                             }
 
