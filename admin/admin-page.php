@@ -137,7 +137,7 @@ class GCS_Admin_Page {
             </style>
 
             <div class="gcs-admin-header">
-                <h1>Gestione Casa Scout <span class="gcs-version">v1.8.6</span></h1>
+                <h1>Gestione Casa Scout <span class="gcs-version">v1.8.7</span></h1>
             </div>
 
             <?php echo $message_html; ?>

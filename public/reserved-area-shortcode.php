@@ -336,8 +336,8 @@ class GCS_Reserved_Area_Shortcode {
                             <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Fine</label><input type="date" name="edit_end" id="edit_end" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></div>
                         </div>
                         <div style="display:flex; justify-content:space-between; gap:10px;">
-                            <button type="button" onclick="openGcsConfirm('Eliminare definitivamente questo impegno?', () => document.getElementById('gcs-calendar-edit-form').requestSubmit())" style="background:#fff; color:#ef4444; border:1px solid #ef4444; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer;">Elimina</button>
-                            <button type="submit" style="background:var(--gcs-primary); color:#fff; border:none; padding:10px 25px; border-radius:8px; font-weight:700; cursor:pointer;">Salva Modifiche</button>
+                            <button type="button" onclick="openGcsConfirm('Eliminare definitivamente questo impegno?', () => { document.getElementById('event_op').value='delete'; document.getElementById('gcs-calendar-edit-form').requestSubmit(); })" style="background:#fff; color:#ef4444; border:1px solid #ef4444; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer;">Elimina</button>
+                            <button type="submit" onclick="document.getElementById('event_op').value='save'" style="background:var(--gcs-primary); color:#fff; border:none; padding:10px 25px; border-radius:8px; font-weight:700; cursor:pointer;">Salva Modifiche</button>
                         </div>
                         <button type="button" onclick="document.getElementById('gcsEditModal').style.display='none'" style="display:block; width:100%; margin-top:15px; background:none; border:none; color:var(--gcs-text-light); cursor:pointer; font-size:13px;">Annulla</button>
                     </form>
@@ -391,6 +391,7 @@ class GCS_Reserved_Area_Shortcode {
                             const doc = new DOMParser().parseFromString(html, 'text/html');
                             document.getElementById('tab_requests').innerHTML = doc.getElementById('tab_requests').innerHTML;
                             document.getElementById('gcs-calendar-ajax-container').innerHTML = doc.getElementById('gcs-calendar-ajax-container').innerHTML;
+                            document.getElementById('gcsEditModal').style.display = 'none';
                             if (container) container.style.opacity = '1';
                             bindAjaxForms();
                         });
