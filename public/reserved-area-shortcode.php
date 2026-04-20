@@ -137,7 +137,7 @@ class GCS_Reserved_Area_Shortcode {
                 #gcsConfirmModal {
                     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                     background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
-                    z-index: 9999; align-items: center; justify-content: center;
+                    z-index: 200000; align-items: center; justify-content: center;
                 }
                 .gcs-confirm-content {
                     background: #fff; padding: 30px; border-radius: 16px; max-width: 380px; width: 90%;
