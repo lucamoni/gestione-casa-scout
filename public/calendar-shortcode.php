@@ -4,6 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class GCS_Calendar_Shortcode {
     public static function init() {
         add_shortcode( 'gcs_calendar', array( __CLASS__, 'render_calendar' ) );
+        add_shortcode( 'gcs_calendario', array( __CLASS__, 'render_calendar' ) );
         add_action( 'wp_ajax_gcs_load_calendar', array( __CLASS__, 'ajax_load_calendar' ) );
         add_action( 'wp_ajax_nopriv_gcs_load_calendar', array( __CLASS__, 'ajax_load_calendar' ) );
     }
@@ -58,6 +59,7 @@ class GCS_Calendar_Shortcode {
                     font-size: 22px;
                     font-weight: 800;
                     letter-spacing: -0.02em;
+                    text-transform: uppercase;
                 }
 
                 .gcs-ajax-cal-nav {
@@ -126,45 +128,52 @@ class GCS_Calendar_Shortcode {
                 .gcs-pub-cal-event {
                     background: var(--gcs-primary);
                     color: #fff;
-                    padding: 6px 10px;
+                    padding: 8px 12px;
                     font-size: 11px;
                     font-weight: 700;
-                    border-radius: 6px;
-                    margin-bottom: 4px;
+                    border-radius: 8px;
+                    margin-bottom: 5px;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
                     position: relative;
                     z-index: 10;
                     display: block;
-                    width: calc(100% + 0px);
+                    width: 100%;
                     box-sizing: border-box;
-                    transition: all 0.2s;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    border: 1px solid rgba(255,255,255,0.1);
                 }
 
                 .gcs-pub-cal-event:hover {
-                    filter: brightness(1.1);
-                    z-index: 20;
+                    filter: brightness(1.15);
+                    transform: translateY(-1px);
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                    z-index: 50;
                 }
 
                 .gcs-pub-cal-event.cont-prev {
                     border-top-left-radius: 0;
                     border-bottom-left-radius: 0;
-                    margin-left: -9px; /* Esci dal padding della cella (8px) */
+                    margin-left: -9px;
                     width: calc(100% + 9px);
-                    padding-left: 17px; /* Compensa lo spostamento per il testo */
+                    padding-left: 20px;
+                    border-left: none;
                 }
 
                 .gcs-pub-cal-event.cont-next {
                     border-top-right-radius: 0;
                     border-bottom-right-radius: 0;
-                    margin-right: -9px;
-                    width: calc(100% + 9px);
+                    margin-right: -90px; /* Force overflow */
+                    width: calc(100% + 10px);
+                    border-right: none;
+                    z-index: 15;
                 }
                 
                 .gcs-pub-cal-event.cont-prev.cont-next {
-                    width: calc(100% + 18px);
+                    width: calc(100% + 19px);
+                    z-index: 12;
                 }
 
                 .gcs-pub-cal-event.event-hidden-text {
@@ -289,15 +298,15 @@ class GCS_Calendar_Shortcode {
                     $next_m = $month == 12 ? 1 : $month + 1;
                     $next_y = $month == 12 ? $year + 1 : $year;
                 ?>
-                <a class="gcs-ajax-cal-nav" data-m="<?php echo $prev_m; ?>" data-y="<?php echo $prev_y; ?>">&laquo; <?php echo $months_names[$prev_m]; ?></a>
+                <a class="gcs-ajax-cal-nav" data-m="<?php echo $prev_m; ?>" data-y="<?php echo $prev_y; ?>">&larr; <?php echo $months_names[$prev_m]; ?></a>
                 <h3><?php echo $months_names[$month] . ' ' . $year; ?></h3>
-                <a class="gcs-ajax-cal-nav" data-m="<?php echo $next_m; ?>" data-y="<?php echo $next_y; ?>"><?php echo $months_names[$next_m]; ?> &raquo;</a>
+                <a class="gcs-ajax-cal-nav" data-m="<?php echo $next_m; ?>" data-y="<?php echo $next_y; ?>"><?php echo $months_names[$next_m]; ?> &rarr;</a>
             </div>
 
             <table class="gcs-pub-cal-table">
                 <thead>
                     <tr>
-                        <?php foreach(array('Lun','Mar','Mer','Gio','Ven','Sab','Dom') as $d): ?>
+                        <?php foreach(array('LUN','MAR','MER','GIO','VEN','SAB','DOM') as $d): ?>
                             <th><?php echo $d; ?></th>
                         <?php endforeach; ?>
                     </tr>
