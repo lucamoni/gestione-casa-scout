@@ -137,7 +137,7 @@ class GCS_Admin_Page {
             </style>
 
             <div class="gcs-admin-header">
-                <h1>Gestione Casa Scout <span class="gcs-version">v1.8.3</span></h1>
+                <h1>Gestione Casa Scout <span class="gcs-version">v1.8.4</span></h1>
             </div>
 
             <?php echo $message_html; ?>
@@ -291,6 +291,14 @@ class GCS_Admin_Page {
                                                     <option value="rejected" <?php selected($req->status, 'rejected'); ?>>Cambia in: Rifiuta</option>
                                                 </select>
                                             </form>
+                                            <?php if ($req->status === 'rejected'): ?>
+                                            <form method="POST" action="<?php echo admin_url('admin.php?page=gestione-casa-scout'); ?>" style="margin:0;" onsubmit="return confirm('ELIMINARE DEFINITIVAMENTE QUESTA PRENOTAZIONE RIFIUTATA?');">
+                                                <input type="hidden" name="gcs_admin_action" value="gcs_delete_request">
+                                                <?php wp_nonce_field('gcs_admin_dashboard_action', 'gcs_admin_nonce'); ?>
+                                                <input type="hidden" name="request_id" value="<?php echo $req->id; ?>">
+                                                <button type="submit" class="admin-delete-btn" title="Elimina definitivamente">🗑️</button>
+                                            </form>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>

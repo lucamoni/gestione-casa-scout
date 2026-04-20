@@ -307,7 +307,8 @@ class GCS_Reserved_Area_Shortcode {
                             <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Inizio</label><input type="date" name="edit_start" id="edit_start" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></div>
                             <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Fine</label><input type="date" name="edit_end" id="edit_end" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></div>
                         </div>
-                        <div style="display:flex; justify-content:flex-end; gap:10px;">
+                        <div style="display:flex; justify-content:space-between; gap:10px;">
+                            <button type="submit" onclick="document.getElementById('event_op').value='delete'; return confirm('Eliminare definitivamente questo impegno?');" style="background:#fff; color:#ef4444; border:1px solid #ef4444; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer;">Elimina</button>
                             <button type="submit" style="background:var(--gcs-primary); color:#fff; border:none; padding:10px 25px; border-radius:8px; font-weight:700; cursor:pointer;">Salva Modifiche</button>
                         </div>
                         <button type="button" onclick="document.getElementById('gcsEditModal').style.display='none'" style="display:block; width:100%; margin-top:15px; background:none; border:none; color:var(--gcs-text-light); cursor:pointer; font-size:13px;">Annulla</button>
@@ -464,6 +465,13 @@ class GCS_Reserved_Area_Shortcode {
                                             <option value="rejected" <?php selected($r->status, 'rejected'); ?>>Cambia in: Rifiuta</option>
                                         </select>
                                     </form>
+                                    <?php if ($r->status === 'rejected'): ?>
+                                    <form method="POST" class="ajax-form" style="margin:0;">
+                                        <input type="hidden" name="request_id" value="<?php echo $r->id; ?>">
+                                        <input type="hidden" name="gcs_front_delete_req" value="1">
+                                        <button type="submit" onclick="return confirm('Eliminare definitivamente?')" style="background:none; border:none; color:#ef4444; font-size:18px; cursor:pointer;" title="Elimina">🗑️</button>
+                                    </form>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
