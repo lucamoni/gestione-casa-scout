@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
  * Gestione Area Riservata
- * Versione 1.5.4 - INTEGRATION & SYNC FIX
+ * Versione 1.9.1 - RICHIESTE & SYNC FIX
  */
 class GCS_Reserved_Area_Shortcode {
     public static function init() {
@@ -101,7 +101,7 @@ class GCS_Reserved_Area_Shortcode {
                 }
 
                 if (!isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-                    wp_safe_redirect(remove_query_arg(['msg', 'gcs_login_error']));
+                    wp_safe_redirect(remove_query_arg(['msg', 'gcs_login_error', 'status_filter']));
                     exit;
                 }
             }
@@ -114,7 +114,7 @@ class GCS_Reserved_Area_Shortcode {
         global $wpdb;
         $table = $wpdb->prefix . 'gcs_requests';
         $pending_count = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE status = 'pending' AND contact_email != 'manuale@calendario.local'");
-        $confirmed_count = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE status = 'confirmed'");
+        $confirmed_count = $wpdb->get_var("SELECT COUNT(*) FROM $table WHERE status = 'confirmed' AND contact_email != 'manuale@calendario.local'");
 
         ob_start(); ?>
         <div class="gcs-dashboard-wrapper">
@@ -133,7 +133,6 @@ class GCS_Reserved_Area_Shortcode {
 
                 .gcs-dashboard-wrapper { font-family: 'Inter', sans-serif; color: var(--gcs-text); background: var(--gcs-bg); padding: 20px; border-radius: var(--gcs-radius); }
                 
-                /* Custom Confirm Modal */
                 #gcsConfirmModal {
                     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                     background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
@@ -161,47 +160,16 @@ class GCS_Reserved_Area_Shortcode {
                 .gcs-filter-bar { background: #fff; padding: 10px 15px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 10px; align-items: center; }
                 .gcs-filter-btn { padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; }
                 .gcs-filter-btn.active { background: var(--gcs-primary); color: #fff; border-color: var(--gcs-primary); }
-                .gcs-logout { 
-                    text-decoration: none; 
-                    background: #fee2e2; 
-                    color: #b91c1c; 
-                    padding: 8px 16px; 
-                    border-radius: 8px; 
-                    font-weight: 600; 
-                    font-size: 14px;
-                    transition: all 0.2s;
-                }
+                .gcs-logout { text-decoration: none; background: #fee2e2; color: #b91c1c; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.2s; }
                 .gcs-logout:hover { background: #fecaca; transform: translateY(-1px); }
 
-                .gcs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-                .gcs-stat-card { 
-                    background: var(--gcs-card-bg); 
-                    padding: 20px; 
-                    border-radius: var(--gcs-radius); 
-                    border: 1px solid #e2e8f0;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .gcs-stat-card span { font-size: 14px; font-weight: 600; color: var(--gcs-text-light); }
-                .gcs-stat-card strong { font-size: 24px; font-weight: 800; color: var(--gcs-primary); }
-
                 .gcs-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: #e2e8f0; padding: 5px; border-radius: 10px; width: fit-content; }
-                .gcs-tab-btn { 
-                    padding: 10px 20px; 
-                    border: none; 
-                    background: none; 
-                    cursor: pointer; 
-                    font-weight: 700; 
-                    color: var(--gcs-text-light);
-                    border-radius: 8px;
-                    transition: all 0.2s;
-                }
+                .gcs-tab-btn { padding: 10px 20px; border: none; background: none; cursor: pointer; font-weight: 700; color: var(--gcs-text-light); border-radius: 8px; transition: all 0.2s; }
                 .gcs-tab-btn.active { background: #fff; color: var(--gcs-primary); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 
-                /* Requests Styling */
                 .gcs-card { background: var(--gcs-card-bg); border-radius: var(--gcs-radius); overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
                 .gcs-table { width: 100%; border-collapse: collapse; }
-                .gcs-table th { background: #f1f5f9; padding: 15px; text-align: left; font-size: 13px; font-weight: 700; color: var(--gcs-text-light); text-transform: uppercase; letter-spacing: 0.05em; }
+                .gcs-table th { background: #f1f5f9; padding: 15px; text-align: left; font-size: 13px; font-weight: 700; color: var(--gcs-text-light); text-transform: uppercase; }
                 .gcs-table td { padding: 20px 15px; border-bottom: 1px solid #f1f5f9; }
                 .gcs-table tr:hover { background: #f8fafc; }
 
@@ -210,18 +178,7 @@ class GCS_Reserved_Area_Shortcode {
                 .badge-confirmed { background: #dcfce7; color: #166534; }
                 .badge-rejected { background: #fee2e2; color: #991b1b; }
 
-                .gcs-action-btn { 
-                    background: #fff; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 6px; 
-                    font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-                    display: inline-flex; align-items: center; gap: 5px;
-                }
-                .btn-approve:hover { background: var(--gcs-primary); color: #fff; border-color: var(--gcs-primary); }
-                .btn-reject:hover { background: #b91c1c; color: #fff; border-color: #b91c1c; }
-                .btn-delete:hover { background: #000; color: #fff; border-color: #000; }
-
-                /* Calendar Styling */
                 .cal-nav { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fff; border-bottom: 1px solid #eee; }
-                .cal-nav h3 { margin: 0; font-size: 18px; font-weight: 700; color: var(--gcs-primary); }
                 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #eee; }
                 .cal-day-header { background: #f8fafc; padding: 10px; text-align: center; font-size: 11px; font-weight: 800; color: var(--gcs-text-light); }
                 .cal-day { background: #fff; min-height: 120px; padding: 8px; position: relative; }
@@ -231,88 +188,59 @@ class GCS_Reserved_Area_Shortcode {
                 .event-bar { 
                     padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; 
                     margin-bottom: 4px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-                    transition: transform 0.1s; position: relative; z-index: 10;
                 }
-                .event-bar:hover { transform: scale(1.02); filter: brightness(1.1); z-index: 20; }
                 .event-manual { background: #ef4444; }
                 .event-request { background: var(--gcs-primary); }
 
-                .event-bar.cont-prev {
-                    border-top-left-radius: 0;
-                    border-bottom-left-radius: 0;
-                    margin-left: -9px;
-                    width: calc(100% + 9px);
-                    padding-left: 17px;
-                }
-                .event-bar.cont-next {
-                    border-top-right-radius: 0;
-                    border-bottom-right-radius: 0;
-                    margin-right: -9px;
-                    width: calc(100% + 9px);
-                }
-                .event-bar.cont-prev.cont-next { width: calc(100% + 18px); }
-                
-                .cal-day { overflow: visible !important; }
-
-                /* Modal glassmorphism */
-                .gcs-modal { 
-                    display:none; position:fixed; z-index:100000; top:0; left:0; width:100%; height:100%; 
-                    background:rgba(0,0,0,0.3); backdrop-filter: blur(4px); align-items:center; justify-content:center; 
-                }
-                .gcs-modal-content { 
-                    background:#fff; padding:30px; border-radius:16px; width:90%; max-width:450px; 
-                    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-                }
+                .gcs-modal { display:none; position:fixed; z-index:100000; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); backdrop-filter: blur(4px); align-items:center; justify-content:center; }
+                .gcs-modal-content { background:#fff; padding:30px; border-radius:16px; width:90%; max-width:450px; }
             </style>
 
             <div class="gcs-header">
-                <h2>Area Riservata</h2>
+                <h2>Amministrazione Casa Scout</h2>
                 <a href="<?php echo esc_url(add_query_arg('gcs_logout', '1')); ?>" class="gcs-logout">Disconnetti</a>
             </div>
 
             <div class="gcs-stats-grid">
                 <div class="gcs-stat-card">
-                    <div class="stat-icon" style="background: #fff8eb; color: #b45309;">⏳</div>
+                    <div class="stat-icon" style="background: #fff8eb; color: #b45309;">📩</div>
                     <div class="stat-info">
-                        <span class="stat-label">In Attesa</span>
+                        <span class="stat-label">Nuove Richieste</span>
                         <span class="stat-val"><?php echo $pending_count; ?></span>
                     </div>
                 </div>
                 <div class="gcs-stat-card">
-                    <div class="stat-icon" style="background: #ecfdf5; color: #059669;">&check;</div>
+                    <div class="stat-icon" style="background: #ecfdf5; color: #059669;">✅</div>
                     <div class="stat-info">
                         <span class="stat-label">Confermate</span>
                         <span class="stat-val"><?php echo $confirmed_count; ?></span>
                     </div>
                 </div>
                 <div class="gcs-stat-card">
-                    <div class="stat-icon" style="background: #e0f2fe; color: #1a4581;">&bull;</div>
+                    <div class="stat-icon" style="background: #e0f2fe; color: #1a4581;">🏛️</div>
                     <div class="stat-info">
-                        <span class="stat-label">Impegni Attivi</span>
+                        <span class="stat-label">Totale Gestite</span>
                         <span class="stat-val"><?php echo ($pending_count + $confirmed_count); ?></span>
                     </div>
                 </div>
             </div>
 
             <div class="gcs-tabs">
-                <button class="gcs-tab-btn active" id="btn_requests" onclick="gcsShowTab('requests')">Richieste</button>
-                <button class="gcs-tab-btn" id="btn_calendar" onclick="gcsShowTab('calendar')">Calendario</button>
-                <button class="gcs-tab-btn" id="btn_settings" onclick="gcsShowTab('settings')">Impostazioni</button>
+                <button class="gcs-tab-btn active" id="btn_requests" onclick="gcsShowTab('requests')">📦 Richieste</button>
+                <button class="gcs-tab-btn" id="btn_calendar" onclick="gcsShowTab('calendar')">📅 Calendario</button>
+                <button class="gcs-tab-btn" id="btn_settings" onclick="gcsShowTab('settings')">⚙️ Impostazioni</button>
             </div>
 
             <div id="tab_requests" class="gcs-tab-content"><?php echo self::render_requests_management(); ?></div>
             <div id="tab_calendar" class="gcs-tab-content" style="display:none;">
-                <div id="gcs-calendar-ajax-container">
-                    <?php echo self::render_calendar_management(); ?>
-                </div>
+                <div id="gcs-calendar-ajax-container"><?php echo self::render_calendar_management(); ?></div>
             </div>
             <div id="tab_settings" class="gcs-tab-content" style="display:none;"><?php echo self::render_settings_management(); ?></div>
 
-            <!-- Global Confirm Modal -->
             <div id="gcsConfirmModal">
                 <div class="gcs-confirm-content">
-                    <h3>Sei sicuro?</h3>
-                    <p id="gcsConfirmText">Questa azione non può essere annullata.</p>
+                    <h3>Conferma Azione</h3>
+                    <p id="gcsConfirmText">Sei sicuro di voler procedere?</p>
                     <div class="gcs-confirm-actions">
                         <button class="btn-cancel" onclick="closeGcsConfirm()">Annulla</button>
                         <button id="gcsConfirmExec" class="btn-confirm-del">Sì, procedi</button>
@@ -322,24 +250,23 @@ class GCS_Reserved_Area_Shortcode {
 
             <div id="gcsEditModal" class="gcs-modal">
                 <div class="gcs-modal-content">
-                    <h3 style="margin-top:0; font-size:20px;">Dettaglio Impegno</h3>
+                    <h3 style="margin-top:0;">Dettaglio Impegno</h3>
                     <form method="POST" id="gcs-calendar-edit-form" class="ajax-form">
                         <input type="hidden" name="gcs_edit_event_action" value="1">
                         <input type="hidden" name="edit_id" id="edit_id">
                         <input type="hidden" name="gcs_event_op" id="event_op" value="save">
                         <div style="margin-bottom:15px;">
-                            <label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Titolo Gruppo</label>
+                            <label style="display:block; font-size:12px; font-weight:700;">Titolo Gruppo</label>
                             <input type="text" name="edit_title" id="edit_title" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
-                            <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Inizio</label><input type="date" name="edit_start" id="edit_start" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></div>
-                            <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Fine</label><input type="date" name="edit_end" id="edit_end" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></div>
+                            <div><label style="display:block; font-size:12px; font-weight:700;">Inizio</label><input type="date" name="edit_start" id="edit_start" style="width:100%;"></div>
+                            <div><label style="display:block; font-size:12px; font-weight:700;">Fine</label><input type="date" name="edit_end" id="edit_end" style="width:100%;"></div>
                         </div>
-                        <div style="display:flex; justify-content:space-between; gap:10px;">
-                            <button type="button" onclick="openGcsConfirm('Eliminare definitivamente questo impegno?', () => { document.getElementById('event_op').value='delete'; document.getElementById('gcs-calendar-edit-form').requestSubmit(); })" style="background:#fff; color:#ef4444; border:1px solid #ef4444; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer;">Elimina</button>
-                            <button type="submit" onclick="document.getElementById('event_op').value='save'" style="background:var(--gcs-primary); color:#fff; border:none; padding:10px 25px; border-radius:8px; font-weight:700; cursor:pointer;">Salva Modifiche</button>
+                        <div style="display:flex; justify-content:space-between;">
+                            <button type="button" onclick="openGcsConfirm('Eliminare questo impegno?', () => { document.getElementById('event_op').value='delete'; document.getElementById('gcs-calendar-edit-form').requestSubmit(); })" style="background:#fff; color:#ef4444; border:1px solid #ef4444; padding:8px 15px; border-radius:8px; cursor:pointer;">Elimina</button>
+                            <button type="submit" style="background:var(--gcs-primary); color:#fff; border:none; padding:10px 25px; border-radius:8px; cursor:pointer;">Salva</button>
                         </div>
-                        <button type="button" onclick="document.getElementById('gcsEditModal').style.display='none'" style="display:block; width:100%; margin-top:15px; background:none; border:none; color:var(--gcs-text-light); cursor:pointer; font-size:13px;">Annulla</button>
                     </form>
                 </div>
             </div>
@@ -365,26 +292,15 @@ class GCS_Reserved_Area_Shortcode {
                 gcsConfirmCallback = callback;
                 document.getElementById('gcsConfirmModal').style.display = 'flex';
             }
-            function closeGcsConfirm() {
-                document.getElementById('gcsConfirmModal').style.display = 'none';
-            }
-            document.getElementById('gcsConfirmExec').onclick = function() {
-                if(gcsConfirmCallback) gcsConfirmCallback();
-                closeGcsConfirm();
-            };
+            function closeGcsConfirm() { document.getElementById('gcsConfirmModal').style.display = 'none'; }
+            document.getElementById('gcsConfirmExec').onclick = function() { if(gcsConfirmCallback) gcsConfirmCallback(); closeGcsConfirm(); };
+
             function bindAjaxForms() {
                 document.querySelectorAll('.ajax-form').forEach(form => {
                     form.onsubmit = function(e) {
                         e.preventDefault();
                         const formData = new FormData(this);
-                        const container = this.closest('.gcs-tab-content');
-                        if (container) container.style.opacity = '0.5';
-
-                        fetch(window.location.href, {
-                            method: 'POST',
-                            body: formData,
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        })
+                        fetch(window.location.href, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                         .then(() => fetch(window.location.href))
                         .then(r => r.text())
                         .then(html => {
@@ -392,130 +308,76 @@ class GCS_Reserved_Area_Shortcode {
                             document.getElementById('tab_requests').innerHTML = doc.getElementById('tab_requests').innerHTML;
                             document.getElementById('gcs-calendar-ajax-container').innerHTML = doc.getElementById('gcs-calendar-ajax-container').innerHTML;
                             document.getElementById('gcsEditModal').style.display = 'none';
-                            if (container) container.style.opacity = '1';
                             bindAjaxForms();
                         });
                     };
-
-                    // Handle auto-submit selects
-                    const sel = form.querySelector('select[onchange]');
-                    if (sel) {
-                        sel.removeAttribute('onchange');
-                        sel.addEventListener('change', () => form.dispatchEvent(new Event('submit')));
-                    }
+                    const sel = form.querySelector('select');
+                    if (sel) sel.onchange = () => form.requestSubmit();
                 });
             }
 
             function gcsNavigateCalendar(month, year) {
                 const container = document.getElementById('gcs-calendar-ajax-container');
-                container.style.opacity = '0.5';
-                
                 const formData = new FormData();
                 formData.append('action', 'gcs_fetch_calendar');
                 formData.append('c_month', month);
                 formData.append('c_year', year);
-
-                fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.text())
-                .then(html => {
-                    container.innerHTML = html;
-                    container.style.opacity = '1';
-                });
+                fetch('<?php echo admin_url('admin-ajax.php'); ?>', { method: 'POST', body: formData })
+                .then(r => r.text()).then(html => { container.innerHTML = html; });
             }
 
             document.addEventListener('DOMContentLoaded', bindAjaxForms);
             </script>
         </div>
-        <?php
-        return ob_get_clean();
+        <?php return ob_get_clean();
     }
 
     private static function render_requests_management() {
         global $wpdb;
         $table = $wpdb->prefix . 'gcs_requests';
+        $filter = isset($_GET['status_filter']) ? sanitize_text_field($_GET['status_filter']) : 'active';
         
-        $filter = $_GET['status_filter'] ?? 'active';
         $where = "WHERE contact_email != 'manuale@calendario.local'";
-        
-        if ($filter == 'active') {
-            $where .= " AND status NOT IN ('rejected')";
-        } elseif ($filter == 'rejected') {
-            $where .= " AND status = 'rejected'";
-        } elseif ($filter == 'confirmed') {
+        if ($filter === 'active') {
+            $where .= " AND status IN ('pending', 'confirmed')";
+        } elseif ($filter === 'confirmed') {
             $where .= " AND status = 'confirmed'";
+        } elseif ($filter === 'rejected') {
+            $where .= " AND status = 'rejected'";
         }
         
         $requests = $wpdb->get_results("SELECT * FROM $table $where ORDER BY created_at DESC");
         
         ob_start(); ?>
-        <div class="gcs-card" style="padding:0; overflow:hidden;">
+        <div class="gcs-card">
             <div class="gcs-filter-bar">
-                <span style="font-size:12px; font-weight:800; text-transform:uppercase; color:#94a3b8; margin-right:10px;">Filtra:</span>
-                <a href="?status_filter=active" class="gcs-filter-btn <?php echo $filter == 'active' ? 'active' : ''; ?>">Attive</a>
-                <a href="?status_filter=confirmed" class="gcs-filter-btn <?php echo $filter == 'confirmed' ? 'active' : ''; ?>">Confermate</a>
-                <a href="?status_filter=rejected" class="gcs-filter-btn <?php echo $filter == 'rejected' ? 'active' : ''; ?>">Rifiutate</a>
-                <a href="?status_filter=all" class="gcs-filter-btn <?php echo $filter == 'all' ? 'active' : ''; ?>">Tutte</a>
+                <span style="font-size:11px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Visualizza:</span>
+                <a href="<?php echo add_query_arg('status_filter', 'active'); ?>" class="gcs-filter-btn <?php echo $filter == 'active' ? 'active' : ''; ?>">Attive</a>
+                <a href="<?php echo add_query_arg('status_filter', 'confirmed'); ?>" class="gcs-filter-btn <?php echo $filter == 'confirmed' ? 'active' : ''; ?>">Confermate</a>
+                <a href="<?php echo add_query_arg('status_filter', 'rejected'); ?>" class="gcs-filter-btn <?php echo $filter == 'rejected' ? 'active' : ''; ?>">Rifiutate</a>
+                <a href="<?php echo add_query_arg('status_filter', 'all'); ?>" class="gcs-filter-btn <?php echo $filter == 'all' ? 'active' : ''; ?>">Tutte</a>
             </div>
             <table class="gcs-table">
-                <thead>
-                    <tr>
-                        <th>Gruppo / Contatto</th>
-                        <th>Periodo & Ospiti</th>
-                        <th>Stato</th>
-                        <th style="text-align:right;">Azioni</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>Gruppo</th><th>Periodo</th><th>Stato</th><th style="text-align:right;">Gestione</th></tr></thead>
                 <tbody>
                     <?php if (empty($requests)): ?>
-                        <tr><td colspan="4" style="padding:40px; text-align:center; color:var(--gcs-text-light);">Nessuna richiesta trovata.</td></tr>
+                        <tr><td colspan="4" style="padding:40px; text-align:center;">Nessuna richiesta trovata.</td></tr>
                     <?php else: foreach ($requests as $r): ?>
                         <tr>
-                            <td>
-                                <div style="font-weight:700; font-size:15px;"><?php echo esc_html($r->group_name); ?></div>
-                                <div style="font-size:12px; color:var(--gcs-text-light);"><?php echo esc_html($r->contact_email); ?></div>
-                            </td>
-                            <td>
-                                <div style="font-size:13px; font-weight:600;">
-                                    <?php echo date('d/m/Y', strtotime($r->start_date)); ?> - <?php echo date('d/m/Y', strtotime($r->end_date)); ?>
-                                </div>
-                                <div style="font-size:12px; color:var(--gcs-primary); font-weight:700;">
-                                    <?php echo esc_html($r->guests_count); ?> persone
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge badge-<?php echo $r->status; ?>">
-                                    <?php 
-                                        if ($r->status === 'pending') echo 'In Attesa';
-                                        elseif ($r->status === 'confirmed') echo 'Confermata';
-                                        else echo 'Rifiutata';
-                                    ?>
-                                </span>
-                                <?php if($r->status === 'confirmed'): ?>
-                                    <div style="font-size:10px; color:var(--gcs-primary); font-weight:700; margin-top:5px;">Nel Calendario</div>
-                                <?php endif; ?>
-                            </td>
+                            <td><strong><?php echo esc_html($r->group_name); ?></strong><br><small><?php echo esc_html($r->contact_email); ?></small></td>
+                            <td><?php echo date('d/m/Y', strtotime($r->start_date)); ?> - <?php echo date('d/m/Y', strtotime($r->end_date)); ?><br><small><?php echo $r->guests_count; ?> persone</small></td>
+                            <td><span class="badge badge-<?php echo $r->status; ?>"><?php echo $r->status == 'pending' ? 'In Attesa' : ($r->status == 'confirmed' ? 'Confermata' : 'Rifiutata'); ?></span></td>
                             <td style="text-align:right;">
-                                <div style="display:inline-flex; align-items:center; gap:8px;">
-                                    <form method="POST" class="ajax-form" style="margin:0;">
-                                        <input type="hidden" name="request_id" value="<?php echo $r->id; ?>">
-                                        <input type="hidden" name="gcs_front_update_status" value="1">
-                                        <select name="status" onchange="this.form.submit()" style="padding:5px; border-radius:6px; font-size:12px; border:1px solid #e2e8f0; font-weight:600;">
-                                            <option value="pending" <?php selected($r->status, 'pending'); ?>>Cambia in: Attesa</option>
-                                            <option value="confirmed" <?php selected($r->status, 'confirmed'); ?>>Cambia in: Conferma</option>
-                                            <option value="rejected" <?php selected($r->status, 'rejected'); ?>>Cambia in: Rifiuta</option>
-                                        </select>
-                                    </form>
-                                    <?php if ($r->status === 'rejected'): ?>
-                                    <form method="POST" class="ajax-form" id="req-del-form-<?php echo $r->id; ?>" style="margin:0;">
-                                        <input type="hidden" name="request_id" value="<?php echo $r->id; ?>">
-                                        <input type="hidden" name="gcs_front_delete_req" value="1">
-                                        <button type="button" onclick="openGcsConfirm('Eliminare definitivamente questa richiesta?', () => document.getElementById('req-del-form-<?php echo $r->id; ?>').requestSubmit())" style="background:#fff1f2; color:#ef4444; border:1px solid #fecaca; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">Elimina</button>
-                                    </form>
-                                    <?php endif; ?>
-                                </div>
+                                <form method="POST" class="ajax-form" style="display:inline-flex; gap:5px;">
+                                    <input type="hidden" name="request_id" value="<?php echo $r->id; ?>"><input type="hidden" name="gcs_front_update_status" value="1">
+                                    <select name="status" style="padding:5px; border-radius:6px; font-size:11px;">
+                                        <option value="pending" <?php selected($r->status, 'pending'); ?>>Attesa</option>
+                                        <option value="confirmed" <?php selected($r->status, 'confirmed'); ?>>Conferma</option>
+                                        <option value="rejected" <?php selected($r->status, 'rejected'); ?>>Rifiuta</option>
+                                    </select>
+                                    <button type="button" onclick="openGcsConfirm('Eliminare definitivamente?', () => { this.form.querySelector('[name=gcs_front_delete_req]').value='1'; this.form.requestSubmit(); })" style="background:none; border:none; cursor:pointer;">🗑️</button>
+                                    <input type="hidden" name="gcs_front_delete_req" value="0">
+                                </form>
                             </td>
                         </tr>
                     <?php endforeach; endif; ?>
@@ -526,100 +388,48 @@ class GCS_Reserved_Area_Shortcode {
     }
 
     private static function render_calendar_management() {
-        global $wpdb;
-        $table = $wpdb->prefix . 'gcs_requests';
-        
+        global $wpdb; $table = $wpdb->prefix . 'gcs_requests';
         $m = isset($_REQUEST['c_month']) ? intval($_REQUEST['c_month']) : date('n');
         $y = isset($_REQUEST['c_year']) ? intval($_REQUEST['c_year']) : date('Y');
-        
-        $start_of_month = sprintf("%04d-%02d-01", $y, $m);
-        $end_of_month = date("Y-m-t", strtotime($start_of_month));
-        
-        // Fetch events
-        $events = $wpdb->get_results($wpdb->prepare(
-            "SELECT * FROM $table WHERE status = 'confirmed' AND (start_date <= %s AND end_date >= %s) ORDER BY start_date ASC", 
-            $end_of_month, $start_of_month
-        ));
-
-        // Month Names
+        $start_m = sprintf("%04d-%02d-01", $y, $m); $end_m = date("Y-m-t", strtotime($start_m));
+        $events = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table WHERE status = 'confirmed' AND (start_date <= %s AND end_date >= %s)", $end_m, $start_m));
         $months = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
-        
         ob_start(); ?>
-        <div style="display:grid; grid-template-columns: 2.5fr 1fr; gap:25px; align-items: start;" class="gcs-calendar-wrapper">
-            <div class="gcs-card" style="padding:0; overflow:hidden;">
+        <div style="display:grid; grid-template-columns: 2.5fr 1fr; gap:20px;">
+            <div class="gcs-card">
                 <div class="cal-nav">
-                    <?php 
-                    $p_m = ($m == 1) ? 12 : $m - 1;
-                    $p_y = ($m == 1) ? $y - 1 : $y;
-                    $n_m = ($m == 12) ? 1 : $m + 1;
-                    $n_y = ($m == 12) ? $y + 1 : $y;
-                    ?>
-                    <button onclick="gcsNavigateCalendar(<?php echo $p_m; ?>, <?php echo $p_y; ?>)" class="gcs-filter-btn">&larr; Prec</button>
-                    <h3 style="margin:0;"><?php echo $months[$m-1] . ' ' . $y; ?></h3>
-                    <button onclick="gcsNavigateCalendar(<?php echo $n_m; ?>, <?php echo $n_y; ?>)" class="gcs-filter-btn">Succ &rarr;</button>
+                    <button onclick="gcsNavigateCalendar(<?php echo $m==1?12:$m-1; ?>, <?php echo $m==1?$y-1:$y; ?>)" class="gcs-filter-btn">&larr;</button>
+                    <h3><?php echo $months[$m-1] . ' ' . $y; ?></h3>
+                    <button onclick="gcsNavigateCalendar(<?php echo $m==12?1:$m+1; ?>, <?php echo $m==12?$y+1:$y; ?>)" class="gcs-filter-btn">&rarr;</button>
                 </div>
                 <div class="cal-grid">
-                    <?php foreach(['LUN','MAR','MER','GIO','VEN','SAB','DOM'] as $d) echo '<div class="cal-day-header">'.$d.'</div>'; ?>
+                    <?php foreach(['L','M','M','G','V','S','D'] as $d) echo '<div class="cal-day-header">'.$d.'</div>'; ?>
                     <?php
-                    $first_day_of_week = date('N', strtotime($start_of_month)); // 1 (Mon) to 7 (Sun)
-                    for ($i = 1; $i < $first_day_of_week; $i++) echo '<div style="background:#f9fafb;"></div>';
-                    
-                    $days_in_month = date('t', strtotime($start_of_month));
-                    for ($d = 1; $d <= $days_in_month; $d++) {
-                        $cur_date = sprintf("%04d-%02d-%02d", $y, $m, $d);
-                        $is_today = ($cur_date == date('Y-m-d'));
-                        ?>
-                        <div class="cal-day <?php echo $is_today ? 'today' : ''; ?>">
-                            <span class="cal-day-num"><?php echo $d; ?></span>
-                            <?php 
-                            $week_day_index = date('N', strtotime($cur_date)); // 1-7
-                            foreach($events as $e) {
-                                if($cur_date >= $e->start_date && $cur_date <= $e->end_date) {
-                                    $is_start = ($cur_date == $e->start_date);
-                                    $is_end = ($cur_date == $e->end_date);
-                                    $type_class = ($e->contact_email == 'manuale@calendario.local') ? 'event-manual' : 'event-request';
-                                    
-                                    $extra_classes = [];
-                                    if (!$is_start) $extra_classes[] = 'cont-prev';
-                                    if (!$is_end) $extra_classes[] = 'cont-next';
-                                    
-                                    $show_text = ($is_start || $d == 1 || $week_day_index == 1);
-                                    $text_style = $show_text ? '' : 'color:transparent;';
-                                    ?>
-                                    <div onclick="gcsEditEvent(<?php echo $e->id; ?>, '<?php echo esc_js($e->group_name); ?>', '<?php echo $e->start_date; ?>', '<?php echo $e->end_date; ?>')" 
-                                         class="event-bar <?php echo $type_class; ?> <?php echo implode(' ', $extra_classes); ?>" 
-                                         style="<?php echo $text_style; ?>"
-                                         title="<?php echo esc_attr($e->group_name); ?>">
-                                        <?php echo esc_html($e->group_name); ?>
-                                    </div>
-                                    <?php
-                                }
+                    $fw = date('N', strtotime($start_m));
+                    for ($i = 1; $i < $fw; $i++) echo '<div style="background:#f9fafb;"></div>';
+                    for ($d = 1; $d <= date('t', strtotime($start_m)); $d++) {
+                        $cur = sprintf("%04d-%02d-%02d", $y, $m, $d);
+                        echo '<div class="cal-day '.($cur==date('Y-m-d')?'today':'').'"><span class="cal-day-num">'.$d.'</span>';
+                        foreach($events as $e) {
+                            if($cur >= $e->start_date && $cur <= $e->end_date) {
+                                $isStart = ($cur == $e->start_date); $isEnd = ($cur == $e->end_date);
+                                $color = ($e->contact_email == 'manuale@calendario.local') ? 'event-manual' : 'event-request';
+                                echo '<div onclick="gcsEditEvent('.$e->id.',\''.esc_js($e->group_name).'\',\''.$e->start_date.'\',\''.$e->end_date.'\')" class="event-bar '.$color.' '.(!$isStart?'cont-prev ':'').(!$isEnd?'cont-next':'').'">'.($isStart||$d==1?esc_html($e->group_name):'').'</div>';
                             }
-                            ?>
-                        </div>
-                        <?php
+                        }
+                        echo '</div>';
                     }
                     ?>
                 </div>
             </div>
-
-            <div class="gcs-card" style="padding:25px;">
-                <h4 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:20px;">Nuovo Impegno</h4>
-                <form method="POST">
+            <div class="gcs-card" style="padding:20px;">
+                <h4 style="margin-top:0;">Nuovo Impegno</h4>
+                <form method="POST" class="ajax-form">
                     <input type="hidden" name="gcs_front_add_manual" value="1">
-                    <div style="margin-bottom:15px;">
-                        <label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Nome Gruppo / Nota</label>
-                        <input type="text" name="event_title" placeholder="Es: Gruppo Roma 12" required style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
-                    </div>
-                    <div style="margin-bottom:15px;">
-                        <label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Data Inizio</label>
-                        <input type="date" name="event_start" required style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
-                    </div>
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px;">Data Fine</label>
-                        <input type="date" name="event_end" required style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
-                    </div>
-                    <button type="submit" style="width:100%; background:var(--gcs-primary); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; cursor:pointer;">Aggiungi al Calendario</button>
+                    <input type="text" name="event_title" placeholder="Nome Gruppo" required style="width:100%; margin-bottom:10px;">
+                    <input type="date" name="event_start" required style="width:100%; margin-bottom:10px;">
+                    <input type="date" name="event_end" required style="width:100%; margin-bottom:15px;">
+                    <button type="submit" style="width:100%; background:var(--gcs-primary); color:#fff; border:none; padding:10px; border-radius:8px; font-weight:700;">Aggiungi</button>
                 </form>
             </div>
         </div>
@@ -628,57 +438,27 @@ class GCS_Reserved_Area_Shortcode {
 
     private static function render_settings_management() {
         ob_start(); ?>
-        <div style="max-width:600px;">
-            <div class="gcs-card" style="padding:30px;">
-                <h4 style="margin-top:0; margin-bottom:20px;">Configurazione Sistema</h4>
-                <form method="POST">
-                    <input type="hidden" name="gcs_front_settings_save" value="1">
-                    <div style="margin-bottom:20px;">
-                        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:8px;">Email Notifiche</label>
-                        <p style="font-size:12px; color:var(--gcs-text-light); margin-bottom:10px;">Le nuove richieste verranno inviate a questo indirizzo.</p>
-                        <input type="email" name="gcs_notification_email" value="<?php echo esc_attr(get_option('gcs_notification_email')); ?>" style="width:100%; padding:12px; border:1px solid #e2e8f0; border-radius:8px;">
-                    </div>
-                    
-                    <div style="margin-bottom:25px;">
-                        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:8px;">Utenti Area Riservata</label>
-                        <p style="font-size:12px; color:var(--gcs-text-light); margin-bottom:10px;">Formato: <code>username:password</code> (una riga per utente)</p>
-                        <textarea name="gcs_reserved_users" style="width:100%; height:100px; padding:12px; border:1px solid #e2e8f0; border-radius:8px; font-family:monospace;"><?php echo esc_textarea(get_option('gcs_reserved_users')); ?></textarea>
-                    </div>
-
-                    <button type="submit" style="background:var(--gcs-primary); color:#fff; border:none; padding:12px 30px; border-radius:8px; font-weight:700; cursor:pointer;">Salva Impostazioni</button>
-                </form>
-            </div>
+        <div class="gcs-card" style="padding:30px; max-width:600px;">
+            <h4 style="margin-top:0;">Impostazioni</h4>
+            <form method="POST">
+                <input type="hidden" name="gcs_front_settings_save" value="1">
+                <div style="margin-bottom:15px;"><label style="display:block; font-weight:700;">Email Notifiche</label><input type="email" name="gcs_notification_email" value="<?php echo esc_attr(get_option('gcs_notification_email')); ?>" style="width:100%;"></div>
+                <div style="margin-bottom:20px;"><label style="display:block; font-weight:700;">Utenti (user:pass)</label><textarea name="gcs_reserved_users" style="width:100%; height:80px;"><?php echo esc_textarea(get_option('gcs_reserved_users')); ?></textarea></div>
+                <button type="submit" style="background:var(--gcs-primary); color:#fff; border:none; padding:10px 30px; border-radius:8px; font-weight:700;">Salva</button>
+            </form>
         </div>
         <?php return ob_get_clean();
     }
 
     private static function render_login_form() {
         ob_start(); ?>
-        <div class="gcs-dashboard-wrapper" style="max-width:400px; margin:60px auto; padding:40px;">
-            <style>
-                .login-title { text-align: center; margin-bottom: 30px; }
-                .login-title h2 { margin:0; color: #1a4581; font-size: 24px; font-weight: 800; }
-                .login-title p { color: #64748b; font-size: 14px; margin-top:5px; font-weight: 600; }
-                .login-input { width:100%; padding:12px; margin-bottom:15px; border:1px solid #e2e8f0; border-radius:8px; outline:none; transition: all 0.2s; box-sizing: border-box; }
-                .login-input:focus { border-color: #1a4581; box-shadow: 0 0 0 3px rgba(26, 69, 129, 0.1); }
-                .login-btn { width:100%; background:#1a4581; color:#fff; border:none; padding:14px; border-radius:8px; font-weight: 700; cursor:pointer; font-size:15px; transition: all 0.2s; }
-                .login-btn:hover { background: #0d264a; transform: translateY(-1px); }
-                .error-msg { background:#fee2e2; color:#b91c1c; padding:12px; border-radius:8px; margin-bottom:20px; font-size:13px; text-align:center; font-weight: 600; border: 1px solid #fecaca; }
-            </style>
-            
-            <div class="login-title">
-                <h2>Accesso Riservato</h2>
-                <p>Gestione Casa Scout</p>
-            </div>
-
-            <?php if (isset($_GET['gcs_login_error'])): ?>
-                <div class="error-msg">Credenziali non valide. Riprova.</div>
-            <?php endif; ?>
-
+        <div class="gcs-dashboard-wrapper" style="max-width:350px; margin:100px auto; padding:40px; text-align:center;">
+            <h2>Login Amministratore</h2>
+            <?php if(isset($_GET['gcs_login_error'])) echo '<p style="color:red;">Dati errati.</p>'; ?>
             <form method="POST">
-                <input type="text" name="gcs_username" placeholder="Nome utente" required class="login-input">
-                <input type="password" name="gcs_password" placeholder="Password" required class="login-input">
-                <button type="submit" name="gcs_reserved_login_submit" class="login-btn">Accedi al Sistema</button>
+                <input type="text" name="gcs_username" placeholder="User" required style="width:100%; margin-bottom:10px; padding:10px;">
+                <input type="password" name="gcs_password" placeholder="Pass" required style="width:100%; margin-bottom:20px; padding:10px;">
+                <button type="submit" name="gcs_reserved_login_submit" style="width:100%; padding:12px; background:var(--gcs-primary); color:#fff; border:none; border-radius:8px; font-weight:700;">Entra</button>
             </form>
         </div>
         <?php return ob_get_clean();
