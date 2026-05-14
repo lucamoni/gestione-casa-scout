@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Gestione Casa Scout
  * Description: Sistema cucito su misura per la casa scout: form contatti con salvataggio nel database, Dashboard Admin per la gestione e calendario richieste. Utilizzare [gcs_booking_form] per il modulo e [gcs_calendar] per il calendario.
- * Version: 1.9.2
+ * Version: 1.9.3
  * Author: Luca Moni
  * Text Domain: gestione-casa-scout
  */
@@ -26,13 +26,10 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/plugin-update-checker/plugi
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 $myUpdateChecker = PucFactory::buildUpdateChecker(
-    'https://github.com/lucamoni/gestione-casa-scout',
+    'https://raw.githubusercontent.com/lucamoni/gestione-casa-scout/main/info.json',
     __FILE__,
     'gestione-casa-scout'
 );
-
-// Set the branch that contains the updates.
-$myUpdateChecker->setBranch('main');
 
 // Forza la pulizia della cache se necessario (opzionale, meglio rimuovere in produzione)
 add_action('admin_init', function() {

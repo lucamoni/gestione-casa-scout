@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
  * Gestione Area Riservata
- * Versione 1.9.2 - RICHIESTE & SYNC FIX
+ * Versione 1.9.3 - RICHIESTE & SYNC FIX
  */
 class GCS_Reserved_Area_Shortcode {
     public static function init() {
