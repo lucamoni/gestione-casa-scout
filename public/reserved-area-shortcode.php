@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
  * Gestione Area Riservata
- * Versione 1.9.6 - RITORNO AL LOOK PREMIUM & SYNC FIX
+ * Versione 1.9.7 - LAYOUT CALENDARIO OTTIMIZZATO (75/25)
  */
 class GCS_Reserved_Area_Shortcode {
     public static function init() {
@@ -142,8 +142,7 @@ class GCS_Reserved_Area_Shortcode {
                 .gcs-header h2 { margin: 0; font-size: 26px; font-weight: 800; color: var(--gcs-primary); letter-spacing: -0.5px; }
                 
                 .gcs-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-                .gcs-stat-card { background: #fff; padding: 20px; border-radius: var(--gcs-radius); box-shadow: var(--gcs-shadow); display: flex; align-items: center; gap: 15px; border: 1px solid rgba(226, 232, 240, 0.5); transition: transform 0.2s; }
-                .gcs-stat-card:hover { transform: translateY(-2px); }
+                .gcs-stat-card { background: #fff; padding: 20px; border-radius: var(--gcs-radius); box-shadow: var(--gcs-shadow); display: flex; align-items: center; gap: 15px; border: 1px solid rgba(226, 232, 240, 0.5); }
                 .stat-icon { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
                 .stat-info { display: flex; flex-direction: column; }
                 .stat-label { font-size: 11px; font-weight: 700; color: var(--gcs-text-light); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -155,25 +154,21 @@ class GCS_Reserved_Area_Shortcode {
 
                 .gcs-card { background: var(--gcs-card-bg); border-radius: var(--gcs-radius); overflow: hidden; border: 1px solid #e2e8f0; box-shadow: var(--gcs-shadow); }
                 .gcs-filter-bar { background: #fff; padding: 15px 20px; border-bottom: 1px solid #e2e8f0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-                .gcs-filter-btn { padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+                .gcs-filter-btn { padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; font-size: 13px; font-weight: 700; cursor: pointer; text-decoration: none; }
                 .gcs-filter-btn.active { background: var(--gcs-primary); color: #fff; border-color: var(--gcs-primary); }
-                .gcs-filter-btn:hover:not(.active) { background: #f1f5f9; }
 
                 .gcs-table { width: 100%; border-collapse: collapse; }
-                .gcs-table th { background: #f8fafc; padding: 15px 20px; text-align: left; font-size: 12px; font-weight: 800; color: var(--gcs-text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+                .gcs-table th { background: #f8fafc; padding: 15px 20px; text-align: left; font-size: 12px; font-weight: 800; color: var(--gcs-text-light); text-transform: uppercase; }
                 .gcs-table td { padding: 20px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-                .gcs-table tr:hover { background: #f8fafc; }
 
                 .badge { padding: 5px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
                 .badge-pending, .badge-in-attesa { background: #fef3c7; color: #92400e; }
                 .badge-confirmed, .badge-confermata { background: #dcfce7; color: #166534; }
-                .badge-rejected, .badge-rifiutata { background: #fee2e2; color: #991b1b; }
 
                 .cal-nav { display: flex; justify-content: space-between; align-items: center; padding: 25px; background: #fff; border-bottom: 1px solid #eee; }
                 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #e2e8f0; border: 1px solid #e2e8f0; }
                 .cal-day-header { background: #f8fafc; padding: 12px; text-align: center; font-size: 12px; font-weight: 800; color: var(--gcs-text-light); }
                 .cal-day { background: #fff; min-height: 120px; padding: 10px; position: relative; }
-                .cal-day.today { background: #f0fdf4; }
                 .cal-day-num { font-size: 12px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; display: block; }
                 
                 .event-bar { 
@@ -188,7 +183,7 @@ class GCS_Reserved_Area_Shortcode {
                 .event-bar.cont-next { border-top-right-radius: 0; border-bottom-right-radius: 0; width: calc(100% + 15px); z-index: 10; }
 
                 .gcs-modal { display:none; position:fixed; z-index:100000; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px); align-items:center; justify-content:center; }
-                .gcs-modal-content { background:#fff; padding:35px; border-radius:20px; width:90%; max-width:450px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+                .gcs-modal-content { background:#fff; padding:35px; border-radius:20px; width:90%; max-width:450px; }
 
                 input[type="text"], input[type="date"], input[type="email"], select, textarea {
                     border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; font-size: 14px; width: 100%; margin-bottom: 12px; background: #f8fafc;
@@ -196,10 +191,11 @@ class GCS_Reserved_Area_Shortcode {
                 button[type="submit"] {
                     background: var(--gcs-btn-bg); color: #fff; border: none; padding: 14px 28px; border-radius: var(--gcs-btn-radius); font-weight: 700; cursor: pointer; transition: all 0.3s; width: 100%;
                 }
-                button[type="submit"]:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-
-                .gcs-logout { text-decoration: none; color: #ef4444; font-weight: 700; font-size: 14px; padding: 8px 16px; border-radius: 10px; background: #fee2e2; transition: all 0.2s; }
-                .gcs-logout:hover { background: #fecaca; }
+                .gcs-logout { text-decoration: none; color: #ef4444; font-weight: 700; font-size: 14px; padding: 8px 16px; border-radius: 10px; background: #fee2e2; }
+                
+                /* Layout 75/25 per Calendario */
+                .gcs-calendar-layout { display: grid; grid-template-columns: 2.8fr 1fr; gap: 25px; }
+                @media (max-width: 1000px) { .gcs-calendar-layout { grid-template-columns: 1fr; } }
             </style>
 
             <div class="gcs-header">
@@ -384,7 +380,7 @@ class GCS_Reserved_Area_Shortcode {
         $events = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table WHERE status IN ('confirmed', 'confermata', 'Confermata') AND (start_date <= %s AND end_date >= %s)", $end_m, $start_m));
         $months = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
         ob_start(); ?>
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap:25px;">
+        <div class="gcs-calendar-layout">
             <div class="gcs-card">
                 <div class="cal-nav">
                     <button class="gcs-filter-btn" onclick="gcsNavigateCalendar(<?php echo $m==1?12:$m-1; ?>, <?php echo $m==1?$y-1:$y; ?>)">&larr;</button>
@@ -414,17 +410,21 @@ class GCS_Reserved_Area_Shortcode {
                     ?>
                 </div>
             </div>
-            <div class="gcs-card" style="padding:30px;">
-                <h4 style="margin-top:0; color:var(--gcs-primary); margin-bottom:20px;">Nuovo Impegno Manuale</h4>
+            <div class="gcs-card" style="padding:25px;">
+                <h4 style="margin-top:0; color:var(--gcs-primary); font-size:16px; margin-bottom:15px;">Impegno Manuale</h4>
                 <form method="POST" class="ajax-form">
                     <input type="hidden" name="gcs_front_add_manual" value="1">
-                    <input type="text" name="event_title" placeholder="Nome dell'evento/gruppo" required>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-                        <input type="date" name="event_start" required>
-                        <input type="date" name="event_end" required>
-                    </div>
-                    <button type="submit" style="margin-top:10px;">Aggiungi ora</button>
+                    <label style="font-size:11px; font-weight:700; color:#64748b;">NOME GRUPPO</label>
+                    <input type="text" name="event_title" placeholder="Es. Manutenzione" required>
+                    <label style="font-size:11px; font-weight:700; color:#64748b;">DATA INIZIO</label>
+                    <input type="date" name="event_start" required>
+                    <label style="font-size:11px; font-weight:700; color:#64748b;">DATA FINE</label>
+                    <input type="date" name="event_end" required>
+                    <button type="submit" style="margin-top:10px;">Aggiungi</button>
                 </form>
+                <div style="margin-top:20px; padding:15px; background:#f0f9ff; border-radius:10px; font-size:12px; color:#0369a1;">
+                    💡 Gli impegni manuali sono segnati in <strong>rosso</strong> nel calendario.
+                </div>
             </div>
         </div>
         <?php return ob_get_clean();
@@ -463,7 +463,7 @@ class GCS_Reserved_Area_Shortcode {
                 <input type="password" name="gcs_password" placeholder="Password" required style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:12px; margin-bottom:25px; width:100%;">
                 <button type="submit" name="gcs_reserved_login_submit" style="background:<?php echo $primary; ?>; color:#fff; border:none; padding:14px; border-radius:12px; font-weight:700; width:100%; cursor:pointer; transition:all 0.2s;">Accedi all'area</button>
             </form>
-            <p style="margin-top:25px; font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">Gestione Casa Scout v1.9.6</p>
+            <p style="margin-top:25px; font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">Gestione Casa Scout v1.9.7</p>
         </div>
         <?php return ob_get_clean();
     }
