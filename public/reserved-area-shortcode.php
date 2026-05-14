@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
  * Gestione Area Riservata
