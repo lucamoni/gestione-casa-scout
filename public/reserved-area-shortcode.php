@@ -1,9 +1,9 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( ) ) exit;
 
 /**
  * Gestione Area Riservata
- * Versione 1.9.7 - LAYOUT CALENDARIO OTTIMIZZATO (75/25)
+ * Versione 1.9.9 - FIX ELIMINAZIONE RICHIESTE
  */
 class GCS_Reserved_Area_Shortcode {
     public static function init() {
@@ -70,10 +70,11 @@ class GCS_Reserved_Area_Shortcode {
 
             if (isset($_POST['gcs_front_update_status']) || isset($_POST['gcs_front_delete_req']) || isset($_POST['gcs_edit_event_action']) || isset($_POST['gcs_front_add_manual']) || isset($_POST['gcs_front_settings_save'])) {
                 
-                if (isset($_POST['gcs_front_update_status'])) {
-                    GCS_DB_Manager::update_status(intval($_POST['request_id']), sanitize_text_field($_POST['status']));
-                } elseif (isset($_POST['gcs_front_delete_req'])) {
+                // PRIORITÀ ALL'ELIMINAZIONE SE RICHIESTA
+                if (isset($_POST['gcs_front_delete_req']) && $_POST['gcs_front_delete_req'] === '1') {
                     $wpdb->delete($table, array('id' => intval($_POST['request_id'])));
+                } elseif (isset($_POST['gcs_front_update_status']) && $_POST['gcs_front_update_status'] === '1') {
+                    GCS_DB_Manager::update_status(intval($_POST['request_id']), sanitize_text_field($_POST['status']));
                 } elseif (isset($_POST['gcs_edit_event_action'])) {
                     $id = intval($_POST['edit_id']);
                     if ($_POST['gcs_event_op'] === 'delete') {
@@ -193,7 +194,6 @@ class GCS_Reserved_Area_Shortcode {
                 }
                 .gcs-logout { text-decoration: none; color: #ef4444; font-weight: 700; font-size: 14px; padding: 8px 16px; border-radius: 10px; background: #fee2e2; }
                 
-                /* Layout 75/25 per Calendario */
                 .gcs-calendar-layout { display: grid; grid-template-columns: 2.8fr 1fr; gap: 25px; }
                 @media (max-width: 1000px) { .gcs-calendar-layout { grid-template-columns: 1fr; } }
             </style>
@@ -353,14 +353,17 @@ class GCS_Reserved_Area_Shortcode {
                                 </td>
                                 <td style="text-align:right;">
                                     <form method="POST" class="ajax-form" style="display:inline-flex; gap:8px;">
-                                        <input type="hidden" name="request_id" value="<?php echo $r->id; ?>"><input type="hidden" name="gcs_front_update_status" value="1">
+                                        <input type="hidden" name="request_id" value="<?php echo $r->id; ?>">
+                                        <input type="hidden" name="gcs_front_update_status" value="1">
+                                        <input type="hidden" name="gcs_front_delete_req" value="0">
+                                        
                                         <select name="status" style="width:auto; margin-bottom:0; font-size:12px; padding:6px 10px;">
                                             <option value="pending" <?php selected($r->status, 'pending'); ?>>Attesa</option>
                                             <option value="confirmed" <?php selected($r->status, 'confirmed'); ?>>Conferma</option>
                                             <option value="rejected" <?php selected($r->status, 'rejected'); ?>>Rifiuta</option>
                                         </select>
-                                        <button type="button" onclick="if(confirm('Eliminare?')){ this.form.querySelector('[name=gcs_front_delete_req]').value='1'; this.form.requestSubmit(); }" style="background:none; border:none; cursor:pointer; font-size:16px;">🗑️</button>
-                                        <input type="hidden" name="gcs_front_delete_req" value="0">
+                                        
+                                        <button type="button" onclick="if(confirm('Eliminare definitivamente?')){ this.form.querySelector('[name=gcs_front_delete_req]').value='1'; this.form.requestSubmit(); }" style="background:none; border:none; cursor:pointer; font-size:16px;">🗑️</button>
                                     </form>
                                 </td>
                             </tr>
@@ -463,7 +466,7 @@ class GCS_Reserved_Area_Shortcode {
                 <input type="password" name="gcs_password" placeholder="Password" required style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:12px; margin-bottom:25px; width:100%;">
                 <button type="submit" name="gcs_reserved_login_submit" style="background:<?php echo $primary; ?>; color:#fff; border:none; padding:14px; border-radius:12px; font-weight:700; width:100%; cursor:pointer; transition:all 0.2s;">Accedi all'area</button>
             </form>
-            <p style="margin-top:25px; font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">Gestione Casa Scout v1.9.7</p>
+            <p style="margin-top:25px; font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px;">Gestione Casa Scout v1.9.9</p>
         </div>
         <?php return ob_get_clean();
     }
