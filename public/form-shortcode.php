@@ -6,8 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class GCS_Form_Shortcode {
     public static function init() {
         add_shortcode( 'gcs_booking_form', array( __CLASS__, 'render_form' ) );
-        add_action( 'admin_post_nopriv_gcs_submit_form', array( __CLASS__, 'handle_form_submission' ) );
-        add_action( 'admin_post_gcs_submit_form', array( __CLASS__, 'handle_form_submission' ) );
+        add_action( 'template_redirect', array( __CLASS__, 'handle_form_submission' ) );
     }
 
     public static function render_form() {
@@ -165,7 +164,7 @@ class GCS_Form_Shortcode {
                 </script>
             <?php endif; ?>
             
-            <form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="POST" class="gcs-booking-form">
+            <form action="" method="POST" class="gcs-booking-form">
                 <input type="hidden" name="action" value="gcs_submit_form">
                 <?php wp_nonce_field( 'gcs_verify_form', 'gcs_nonce' ); ?>
                 
@@ -267,9 +266,10 @@ class GCS_Form_Shortcode {
     }
 
     public static function handle_form_submission() {
-        if ( ! isset( $_POST['gcs_nonce'] ) || ! wp_verify_nonce( $_POST['gcs_nonce'], 'gcs_verify_form' ) ) {
-            wp_die( 'Accesso non autorizzato o link scaduto.' );
-        }
+        if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['action'] ) && $_POST['action'] === 'gcs_submit_form' ) {
+            if ( ! isset( $_POST['gcs_nonce'] ) || ! wp_verify_nonce( $_POST['gcs_nonce'], 'gcs_verify_form' ) ) {
+                wp_die( 'Accesso non autorizzato o link scaduto.' );
+            }
 
         $group_name    = sanitize_text_field( wp_unslash( $_POST['group_name'] ?? '' ) );
         $contact_email = sanitize_email( wp_unslash( $_POST['contact_email'] ?? '' ) );
@@ -317,11 +317,12 @@ class GCS_Form_Shortcode {
         // Redirect alla pagina con messaggio di successo
         $referer = wp_get_referer();
         if ( ! $referer ) {
-            $referer = home_url();
+            $referer = remove_query_arg( array('gcs_success') );
         }
         
-        $redirect_url = add_query_arg( 'gcs_success', '1', sanitize_url($referer) );
+        $redirect_url = add_query_arg( 'gcs_success', '1', esc_url_raw($referer) );
         wp_safe_redirect( $redirect_url );
         exit;
+        }
     }
 }

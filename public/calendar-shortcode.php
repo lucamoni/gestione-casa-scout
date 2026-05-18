@@ -7,6 +7,13 @@ class GCS_Calendar_Shortcode {
         add_shortcode( 'gcs_calendario', array( __CLASS__, 'render_calendar' ) );
         add_action( 'wp_ajax_gcs_load_calendar', array( __CLASS__, 'ajax_load_calendar' ) );
         add_action( 'wp_ajax_nopriv_gcs_load_calendar', array( __CLASS__, 'ajax_load_calendar' ) );
+        add_action( 'template_redirect', array( __CLASS__, 'front_ajax_handler' ) );
+    }
+
+    public static function front_ajax_handler() {
+        if ( isset($_POST['action']) && $_POST['action'] === 'gcs_load_calendar' ) {
+            self::ajax_load_calendar();
+        }
     }
 
     public static function ajax_load_calendar() {
@@ -14,7 +21,7 @@ class GCS_Calendar_Shortcode {
         $year = isset($_POST['year']) ? intval($_POST['year']) : date('Y');
         
         echo self::generate_calendar_html($month, $year);
-        wp_die();
+        exit;
     }
 
     public static function render_calendar($atts) {
@@ -213,7 +220,7 @@ class GCS_Calendar_Shortcode {
                             params.append('month', m);
                             params.append('year', y);
                             
-                            fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+                            fetch(window.location.href, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/x-www-form-urlencoded'
