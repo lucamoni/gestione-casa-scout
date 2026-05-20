@@ -17,8 +17,8 @@ class GCS_Calendar_Shortcode {
     }
 
     public static function ajax_load_calendar() {
-        $month = isset($_POST['month']) ? intval($_POST['month']) : date('n');
-        $year = isset($_POST['year']) ? intval($_POST['year']) : date('Y');
+        $month = isset($_POST['c_month']) ? intval($_POST['c_month']) : date('n');
+        $year = isset($_POST['c_year']) ? intval($_POST['c_year']) : date('Y');
         
         echo self::generate_calendar_html($month, $year);
         exit;
@@ -217,8 +217,8 @@ class GCS_Calendar_Shortcode {
                             
                             var params = new URLSearchParams();
                             params.append('action', 'gcs_load_calendar');
-                            params.append('month', m);
-                            params.append('year', y);
+                            params.append('c_month', m);
+                            params.append('c_year', y);
                             
                             fetch(window.location.href, {
                                 method: 'POST',
