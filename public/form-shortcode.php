@@ -165,7 +165,7 @@ class GCS_Form_Shortcode {
             <?php endif; ?>
             
             <form action="" method="POST" class="gcs-booking-form">
-                <input type="hidden" name="action" value="gcs_submit_form">
+                <input type="hidden" name="gcs_action" value="gcs_submit_form">
                 <?php wp_nonce_field( 'gcs_verify_form', 'gcs_nonce' ); ?>
                 
                 <div class="gcs-form-row">
@@ -266,7 +266,7 @@ class GCS_Form_Shortcode {
     }
 
     public static function handle_form_submission() {
-        if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['action'] ) && $_POST['action'] === 'gcs_submit_form' ) {
+        if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['gcs_action'] ) && $_POST['gcs_action'] === 'gcs_submit_form' ) {
             if ( ! isset( $_POST['gcs_nonce'] ) || ! wp_verify_nonce( $_POST['gcs_nonce'], 'gcs_verify_form' ) ) {
                 wp_die( 'Accesso non autorizzato o link scaduto.' );
             }

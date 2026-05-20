@@ -11,7 +11,7 @@ class GCS_Calendar_Shortcode {
     }
 
     public static function front_ajax_handler() {
-        if ( isset($_POST['action']) && $_POST['action'] === 'gcs_load_calendar' ) {
+        if ( isset($_POST['gcs_ajax_action']) && $_POST['gcs_ajax_action'] === 'gcs_load_calendar' ) {
             self::ajax_load_calendar();
         }
     }
@@ -216,7 +216,7 @@ class GCS_Calendar_Shortcode {
                             inner.style.opacity = '0.4';
                             
                             var params = new URLSearchParams();
-                            params.append('action', 'gcs_load_calendar');
+                            params.append('gcs_ajax_action', 'gcs_load_calendar');
                             params.append('c_month', m);
                             params.append('c_year', y);
                             
