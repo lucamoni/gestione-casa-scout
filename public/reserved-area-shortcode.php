@@ -9,13 +9,12 @@ class GCS_Reserved_Area_Shortcode {
     public static function init() {
         add_shortcode( 'gcs_reserved_area', array( __CLASS__, 'render_reserved_area' ) );
         add_action( 'template_redirect', array( __CLASS__, 'handle_actions' ) );
-        add_action( 'wp_ajax_gcs_fetch_calendar', array( __CLASS__, 'ajax_fetch_calendar' ) );
     }
 
     public static function ajax_fetch_calendar() {
         if (!self::is_authorized()) wp_die('Unauthorized');
         echo self::render_calendar_management();
-        wp_die();
+        exit;
     }
 
     private static function is_authorized() {
@@ -39,6 +38,10 @@ class GCS_Reserved_Area_Shortcode {
     }
 
     public static function handle_actions() {
+        if (isset($_POST['gcs_ajax_action']) && $_POST['gcs_ajax_action'] === 'gcs_fetch_calendar') {
+            self::ajax_fetch_calendar();
+        }
+        
         if (isset($_GET['gcs_logout'])) {
             setcookie('gcs_reserved_auth', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN);
             wp_safe_redirect(remove_query_arg('gcs_logout'));
@@ -296,10 +299,10 @@ class GCS_Reserved_Area_Shortcode {
             function gcsNavigateCalendar(month, year) {
                 const container = document.getElementById('gcs-calendar-ajax-container');
                 const formData = new FormData();
-                formData.append('action', 'gcs_fetch_calendar');
+                formData.append('gcs_ajax_action', 'gcs_fetch_calendar');
                 formData.append('c_month', month);
                 formData.append('c_year', year);
-                fetch('<?php echo admin_url('admin-ajax.php'); ?>', { method: 'POST', body: formData })
+                fetch(window.location.href, { method: 'POST', body: formData })
                 .then(r => r.text()).then(html => { container.innerHTML = html; });
             }
             document.addEventListener('DOMContentLoaded', bindAjaxForms);
